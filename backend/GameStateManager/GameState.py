@@ -25,7 +25,7 @@ class GameStateManager:
     def __init__(self, nb_players, prime_number=7):
         # Create cards deck
         cards = get_cards(prime_number)
-        #np.random.shuffle(cards)
+        np.random.shuffle(cards)
         self.cards = cards
 
         # Select first card as middle card
