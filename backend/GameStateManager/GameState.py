@@ -16,8 +16,8 @@ class PlayerMove:
 
 
 class Card:
-    def __init__(self, id, composition):
-        self.id = id
+    def __init__(self, card_id, composition):
+        self.card_id = card_id
         self.composition = composition
 
 
@@ -39,7 +39,7 @@ class GameStateManager:
             for player_id in range(nb_players)
         }
         for player_id in range(nb_players):
-            first_card_id = nb_cards_per_player * player_id
+            first_card_id = 1 + nb_cards_per_player * player_id  # first card of the deck has been used as middle card
             last_card_id = first_card_id + nb_cards_per_player
 
             players_cards[player_id] = [
@@ -66,17 +66,17 @@ class GameStateManager:
         return game_state_str
 
     def get_top_card_for_player(self, player_id) -> Card:
-        card_id = self.game_state.players_cards[player_id]
+        card_id = self.game_state.players_cards[player_id][0]
         return Card(
             card_id,
-            self.cards[id]
+            self.cards[card_id]
         )
 
     def get_middle_card(self) -> Card:
         card_id = self.game_state.middle_card
         return Card(
             card_id,
-            self.cards[id]
+            self.cards[card_id]
         )
 
     def valid_player_match(self, move: PlayerMove) -> bool:
@@ -93,11 +93,19 @@ class GameStateManager:
             return False
 
     def resolve_game_state(self, move: PlayerMove):
-        # If the player's move is valid, update game state FIXMe
-        return self.game_state
+        # If the player's move is valid, update game state
+        if self.valid_player_match(move):
+            # FIXME update
+            return self.game_state
 
 
 if __name__ == '__main__':
-    game_on = GameStateManager(3)
+    nb_players = 3
+    prime_number = 7
+    game_on = GameStateManager(nb_players, prime_number)
     print(game_on.__str__())
-    # print(game_on.__str__())
+
+    for p in range(nb_players):
+        print(game_on.get_top_card_for_player(p).id, game_on.get_top_card_for_player(p).composition)
+
+    print(game_on.get_middle_card().id, game_on.get_middle_card().composition)
