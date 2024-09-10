@@ -25,7 +25,7 @@ class GameStateManager:
     def __init__(self, nb_players, prime_number=7):
         # Create cards deck
         cards = get_cards(prime_number)
-        np.random.shuffle(cards)
+        #np.random.shuffle(cards)
         self.cards = cards
 
         # Select first card as middle card
@@ -34,12 +34,11 @@ class GameStateManager:
 
         # Deal the rest of the cards evenly to the players
         nb_cards_per_player = len(cards) // nb_players
-        players_cards = {
-            player_id: []
-            for player_id in range(nb_players)
-        }
+        players_cards = {}
+
+        first_card_id = 1  # first card of the deck has been used as middle card
         for player_id in range(nb_players):
-            first_card_id = 1 + nb_cards_per_player * player_id  # first card of the deck has been used as middle card
+            first_card_id += nb_cards_per_player * player_id
             last_card_id = first_card_id + nb_cards_per_player
 
             players_cards[player_id] = [
@@ -106,6 +105,6 @@ if __name__ == '__main__':
     print(game_on.__str__())
 
     for p in range(nb_players):
-        print(game_on.get_top_card_for_player(p).id, game_on.get_top_card_for_player(p).composition)
+        print(game_on.get_top_card_for_player(p).card_id, game_on.get_top_card_for_player(p).composition)
 
-    print(game_on.get_middle_card().id, game_on.get_middle_card().composition)
+    print(game_on.get_middle_card().card_id, game_on.get_middle_card().composition)
