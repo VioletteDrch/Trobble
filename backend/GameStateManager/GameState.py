@@ -8,6 +8,9 @@ class GameState:
         self.middle_card = middle_card
         self.players_cards = players_cards
 
+    def set_middle_card(self, card_id):
+        self.middle_card = card_id
+
 
 class PlayerMove:
     def __init__(self, player_id, clicked_symbol):
@@ -25,7 +28,7 @@ class GameStateManager:
     def __init__(self, nb_players, prime_number=7):
         # Create cards deck
         cards = get_cards(prime_number)
-        np.random.shuffle(cards)
+        #np.random.shuffle(cards)
         self.cards = cards
 
         # Select first card as middle card
@@ -85,17 +88,22 @@ class GameStateManager:
 
         if move.symbol_id not in player_top_card.composition:
             # symbol should have not been clickable FIXME
+            print("Invalid move")
             return False
 
         if move.symbol_id not in middle_card.composition:
-            # not a match FIXME penalty
+            # not a match FIXME penalty?
+            print("Invalid move")
             return False
+
+        print("Valid move")
+        return True
 
     def resolve_game_state(self, move: PlayerMove):
         # If the player's move is valid, update game state
         if self.valid_player_match(move):
-            # FIXME update
-            return self.game_state
+            new_middle_card = self.game_state.players_cards[move.player_id].pop(0)  # remove top card from player's pile
+            self.game_state.set_middle_card(new_middle_card)  # set it as the new middle card
 
 
 if __name__ == '__main__':
@@ -103,8 +111,6 @@ if __name__ == '__main__':
     prime_number = 7
     game_on = GameStateManager(nb_players, prime_number)
     print(game_on.__str__())
-
-    for p in range(nb_players):
-        print(game_on.get_top_card_for_player(p).card_id, game_on.get_top_card_for_player(p).composition)
-
-    print(game_on.get_middle_card().card_id, game_on.get_middle_card().composition)
+    game_on.resolve_game_state(PlayerMove(
+        0, 0
+    ))
