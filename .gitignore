@@ -1,1 +1,9 @@
+#IDEs stuff
 .idea/
+*/.DS_Store
+.DS_Store
+
+#generated images in face-extractor
+backend/face-extractor/*.png
+backend/face-extractor/*.jpg
+backend/face-extractor/*.jpeg
