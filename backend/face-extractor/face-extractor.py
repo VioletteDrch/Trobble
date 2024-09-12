@@ -72,5 +72,7 @@ for i in range(0, detections.shape[2]):
             mask = drawMask(grayFace, largestContour)
             mask_3channel = cv2.merge([mask, mask, mask])
             faceContour = cv2.bitwise_and(faceRegion, mask_3channel)
-            finalImage = drawFinalImage(height, width, startY, endY, startX, endX, faceContour, mask)
+            new_height = endY - startY
+            new_width = endX - startX
+            finalImage = drawFinalImage(new_height + 1, new_width + 1, 0, new_height, 0, new_width, faceContour, mask)
             cv2.imwrite(outputPath, finalImage)
