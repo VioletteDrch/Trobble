@@ -14,4 +14,8 @@ backend/face-extractor/*.jpeg
 # images
 images/
 
+#frontend
+frontend/node_modules
+
 __pycache__
+
