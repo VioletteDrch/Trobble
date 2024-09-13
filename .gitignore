@@ -3,7 +3,13 @@
 */.DS_Store
 .DS_Store
 
-#generated images in face-extractor
+# virtual env
+venv/
+
+#generated images in face_extractor
 backend/face-extractor/*.png
 backend/face-extractor/*.jpg
 backend/face-extractor/*.jpeg
+
+# images
+images/

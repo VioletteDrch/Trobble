@@ -1,15 +1,16 @@
 import cv2
 import numpy as np
-import sys
+from pathlib import Path
 
 #Parameters to tweak the cropping. All of them have to be odd numbers.
 gaussian_blur = (1, 1) # if not capturing the face but just a forehead for example, then increment the blur to capture more
 threshold = 13 #the highest the threshold, the more strict. Lower it to capture more details (hair for example)
 morph_kernel = (9, 9) # no idea, tweak when the other two are not enough
 
-# ML model stuff for face recognition
-prototxt_path = 'deploy.prototxt'
-model_path = 'res_ssd_300Dim.caffeModel'
+# Paths to ML model stuff for face recognition
+current_dir = base_path = Path(__file__).resolve().parent
+prototxt_path = base_path.joinpath('deploy.prototxt')
+model_path = base_path.joinpath('res_ssd_300Dim.caffeModel')
 
 def getFaceDimensions(detections, i, height, width):
     dimensions = detections[0, 0, i, 3:7]
@@ -42,37 +43,38 @@ def drawFinalImage(height, width, startY, endY, startX, endX, faceContour, mask)
     finalImage[startY:endY, startX:endX, 3] = finalMask[startY:endY, startX:endX]
     return finalImage
 
-picturePath = sys.argv[1]
-outputPath = sys.argv[2]
-if not picturePath:
-    picturePath = 'pic.jpeg'
-if not outputPath:
-    outputPath = 'cropped-face.png'
+def extract_face(picture_path, output_path):
+    print(picture_path)
+    if not picture_path:
+        picture_path = 'pic.jpeg'
+    if not output_path:
+        output_path = 'cropped-face.png'
 
-picture = cv2.imread(picturePath)
-(height, width) = picture.shape[:2]
+    picture = cv2.imread(picture_path)
+    (height, width) = picture.shape[:2]
 
-face_net = cv2.dnn.readNetFromCaffe(prototxt_path, model_path)
+    face_net = cv2.dnn.readNetFromCaffe(prototxt_path, model_path)
 
-blob = cv2.dnn.blobFromImage(picture, 1.0, (300, 300), (104.0, 177.0, 123.0))
-face_net.setInput(blob)
+    blob = cv2.dnn.blobFromImage(picture, 1.0, (300, 300), (104.0, 177.0, 123.0))
+    face_net.setInput(blob)
 
-detections = face_net.forward()
+    detections = face_net.forward()
 
-for i in range(0, detections.shape[2]):
-    confidence = detections[0, 0, i, 2]
+    for i in range(0, detections.shape[2]):
+        confidence = detections[0, 0, i, 2]
 
-    if confidence > 0.5:
-        (startY, endY, startX, endX) = getFaceDimensions(detections, i, height, width)
-        faceRegion = picture[startY:endY, startX:endX]
-        (contours, grayFace) = getContoursAndGrayFace(faceRegion)
+        if confidence > 0.5:
+            (startY, endY, startX, endX) = getFaceDimensions(detections, i, height, width)
+            faceRegion = picture[startY:endY, startX:endX]
+            (contours, grayFace) = getContoursAndGrayFace(faceRegion)
 
-        if contours:
-            largestContour = max(contours, key=cv2.contourArea)
-            mask = drawMask(grayFace, largestContour)
-            mask_3channel = cv2.merge([mask, mask, mask])
-            faceContour = cv2.bitwise_and(faceRegion, mask_3channel)
-            new_height = endY - startY
-            new_width = endX - startX
-            finalImage = drawFinalImage(new_height + 1, new_width + 1, 0, new_height, 0, new_width, faceContour, mask)
-            cv2.imwrite(outputPath, finalImage)
+            if contours:
+                largestContour = max(contours, key=cv2.contourArea)
+                mask = drawMask(grayFace, largestContour)
+                mask_3channel = cv2.merge([mask, mask, mask])
+                faceContour = cv2.bitwise_and(faceRegion, mask_3channel)
+                new_height = endY - startY
+                new_width = endX - startX
+                finalImage = drawFinalImage(new_height + 1, new_width + 1, 0, new_height, 0, new_width, faceContour, mask)
+                cv2.imwrite(output_path, finalImage)
+
