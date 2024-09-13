@@ -12,7 +12,7 @@ backend/face-extractor/*.jpg
 backend/face-extractor/*.jpeg
 
 # images
-images/
+backend/images/
 
 #frontend
 frontend/node_modules
