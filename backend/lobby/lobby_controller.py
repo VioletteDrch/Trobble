@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from typing import Dict, Tuple, Optional
+from typing import Tuple
 import uuid
 import random
 import string
