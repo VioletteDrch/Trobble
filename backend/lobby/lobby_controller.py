@@ -74,7 +74,7 @@ def get_all_public_lobbies() -> Tuple[List[Lobby], int]:
     public_lobbies = [
         {code: lobby}
         for code, lobby in lobbies.items()
-        if not lobby["private"]
+        if not lobby['private']
     ]
 
     return jsonify(public_lobbies), 200
