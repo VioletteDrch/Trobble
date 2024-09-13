@@ -4,7 +4,7 @@ import { CardMechanics } from "./public/src/cards/card-mechanics";
 import { retrieveImages } from "./public/src/images/image-puller";
 
 const sizes = {
-  width: 1000,
+  width: 300,
   height: 500,
 };
 
@@ -12,11 +12,12 @@ const gameState = {
   points: 0,
   pileSize: 1,
   playerName: "Andre",
+  currentAnimations: [],
 };
 
 const gameRules = {
   totalAmountOfCards: 10,
-  pilePosition: { x: 400, y: 100 },
+  pilePosition: { x: 150, y: 120 },
 };
 
 class GameScene extends Phaser.Scene {
@@ -51,9 +52,15 @@ class GameScene extends Phaser.Scene {
   update() {}
 
   createPlayerCard() {
-    this.cardMechanics.createCard(100, 100, gameState.playerName, () => {
-      this.createPlayerCard();
-    });
+    this.cardMechanics.createCard(
+      150,
+      350,
+      gameState.playerName,
+      0x0000ff,
+      () => {
+        this.createPlayerCard();
+      }
+    );
   }
 
   putOtherPlayersCardOnPile() {
@@ -61,9 +68,10 @@ class GameScene extends Phaser.Scene {
       300,
       300,
       "violette",
+      0x7f00ff,
       () => {}
     );
-    this.cardMechanics.score(otherPlayersCard);
+    gameState.currentAnimations = this.cardMechanics.score(otherPlayersCard);
   }
 
   simulateOtherPlayerScoring() {
@@ -82,6 +90,7 @@ class GameScene extends Phaser.Scene {
       this.victorySign.text = "YOU LOSE";
       this.victorySign.setFill("#FF0000");
     }
+    this.shade.setAlpha(1);
     this.tweens.add({
       targets: this.victorySign,
       scale: { from: 0, to: 1 },
@@ -92,6 +101,12 @@ class GameScene extends Phaser.Scene {
   }
 
   createVictorySign() {
+    this.shade = this.add.graphics();
+    this.shade.fillStyle(0x000000, 0.7);
+    this.shade.fillRect(0, 0, sizes.width, sizes.height);
+    this.shade.setAlpha(0);
+    this.shade.setDepth(60);
+
     this.victorySign = this.add.text(
       sizes.width / 2,
       sizes.height / 2,
@@ -104,6 +119,7 @@ class GameScene extends Phaser.Scene {
     );
     this.victorySign.setOrigin(0.5);
     this.victorySign.setAlpha(0);
+    this.victorySign.setDepth(70);
   }
 
   isGameActive() {

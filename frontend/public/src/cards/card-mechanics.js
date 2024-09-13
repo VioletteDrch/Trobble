@@ -29,7 +29,7 @@ export class CardMechanics {
     image.setInteractive();
     image.on("pointerdown", () => {
       if (this.matches(image)) {
-        this.score(card);
+        this.gameState.currentAnimations = this.score(card);
         onScoring();
       }
     });
@@ -56,22 +56,71 @@ export class CardMechanics {
     if (!this.isGameActive()) {
       this.scene.events.emit("gameEnd", card.playerName);
     }
-    this.moveCardToPile(card, this.gameRules.pilePosition);
+    return this.moveCardToPile(card, this.gameRules.pilePosition);
   }
 
   moveCardToPile(card, pilePosition) {
+    const highlight = this.scene.add.graphics();
+
+    const glowColor = card.playerColor;
+    const steps = 6;
+    const nameText = this.scene.add.text(
+      card.x,
+      card.y - card.displayHeight / 2 - 20,
+      card.playerName,
+      {
+        font: "16px Arial",
+        fill: "#ffffff",
+        align: "center",
+      }
+    );
+    nameText.setOrigin(0.5, 0.5);
+
+    this.gameState.currentAnimations.forEach((animation) => {
+      if (animation) {
+        animation.destroy();
+      }
+    });
+
     this.scene.tweens.add({
       targets: card,
       x: pilePosition.x,
       y: pilePosition.y,
       duration: 500,
       ease: "Power2",
+      onUpdate: () => {
+        highlight.clear();
+
+        for (let i = 0; i < steps; i++) {
+          const radius = card.displayWidth / 2 + i * 2;
+          const alpha = 1 - i * (1 / steps);
+          highlight.lineStyle(2, glowColor, alpha);
+          highlight.strokeCircle(card.x, card.y, radius);
+        }
+
+        nameText.setPosition(card.x, card.y - card.displayHeight / 2 - 10);
+      },
+      onComplete: () => {
+        this.scene.tweens.add({
+          targets: [highlight, nameText],
+          alpha: 0,
+          duration: 2000, // 2 seconds
+          ease: "Linear",
+          onComplete: () => {
+            highlight.destroy();
+            nameText.destroy();
+          },
+        });
+      },
     });
+
+    return [highlight, nameText];
   }
 
-  createCard(x, y, playerName, onScoring) {
+  createCard(x, y, playerName, playerColor, onScoring) {
     const card = this.createContainerWithCircle(x, y);
     card.playerName = playerName;
+    card.playerColor = playerColor;
     const imagePositions = getImagePositions();
     const images = retrieveImages();
     for (let i = 1; i < this.totalImagesPerCard; i++) {
@@ -93,7 +142,6 @@ export class CardMechanics {
     shadow.fillCircle(5, 5, 100);
     card.add(shadow);
     card.add(circle);
-    card.setInteractive();
     card.setSize(200, 200);
     return card;
   }
