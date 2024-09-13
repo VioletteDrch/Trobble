@@ -13,3 +13,5 @@ backend/face-extractor/*.jpeg
 
 # images
 images/
+
+__pycache__
