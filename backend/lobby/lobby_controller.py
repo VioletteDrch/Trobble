@@ -13,7 +13,7 @@ lobbies: Dict[str, Lobby] = {}
 def generate_lobby_code(length: int = 6) -> str:
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
-@lobby_bp.route('/create-lobby', methods=['POST'])
+@lobby_bp.route('/lobbies', methods=['POST'])
 def create_lobby() -> Tuple[CreateLobbyResponse, int]:
     data = request.get_json()
     host_name: Optional[str] = data.get('host_name')
@@ -38,7 +38,7 @@ def create_lobby() -> Tuple[CreateLobbyResponse, int]:
 
     return jsonify({"message": "Lobby created successfully", "lobby_code": lobby_code}), 201
 
-@lobby_bp.route('/join-lobby/<lobby_code>', methods=['POST'])
+@lobby_bp.route('/lobbies/<lobby_code>/join', methods=['POST'])
 def join_lobby(lobby_code: str) -> Tuple[JoinLobbyResponse, int]:
     data = request.get_json()
     user_name: Optional[str] = data.get('username')
@@ -80,7 +80,7 @@ def get_all_public_lobbies() -> Tuple[List[Lobby], int]:
     return jsonify(public_lobbies), 200
 
 # Technically anyone can change anyones username unless we add authentication
-@lobby_bp.route('/lobby/<lobby_code>/user/<user_id>', methods=['PUT'])
+@lobby_bp.route('/lobbies/<lobby_code>/users/<user_id>', methods=['PUT'])
 def change_username(lobby_code: str, user_id: str) -> Tuple[ChangeNameResponse, int]:
     data = request.get_json()
     new_username: Optional[str] = data.get('new_username')
