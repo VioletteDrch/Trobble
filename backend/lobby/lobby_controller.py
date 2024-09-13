@@ -10,18 +10,20 @@ lobby_bp = Blueprint('lobby', __name__)
 # We can replace this with something better when we need it
 lobbies: Dict[str, Lobby] = {}
 
+
 def generate_lobby_code(length: int = 6) -> str:
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+
 
 @lobby_bp.route('/lobbies', methods=['POST'])
 def create_lobby() -> Tuple[CreateLobbyResponse, int]:
     data = request.get_json()
     host_name: Optional[str] = data.get('host_name')
     private: bool = data.get('private', False)
-    
+
     if not host_name:
         return jsonify({"error": "Host name is required"}), 400
-    
+
     lobby_code = generate_lobby_code()
 
     # Very unlikely to be a clash but just in case
@@ -37,6 +39,7 @@ def create_lobby() -> Tuple[CreateLobbyResponse, int]:
     }
 
     return jsonify({"message": "Lobby created successfully", "lobby_code": lobby_code}), 201
+
 
 @lobby_bp.route('/lobbies/<lobby_code>/join', methods=['POST'])
 def join_lobby(lobby_code: str) -> Tuple[JoinLobbyResponse, int]:
@@ -59,6 +62,7 @@ def join_lobby(lobby_code: str) -> Tuple[JoinLobbyResponse, int]:
 
     return jsonify({"message": "Joined lobby successfully"}), 200
 
+
 @lobby_bp.route('/lobbies/<lobby_code>', methods=['GET'])
 def get_lobby(lobby_code: str) -> Tuple[GetLobbyResponse, int]:
     if not lobby_code:
@@ -69,6 +73,7 @@ def get_lobby(lobby_code: str) -> Tuple[GetLobbyResponse, int]:
 
     return jsonify(lobbies[lobby_code]), 200
 
+
 @lobby_bp.route('/lobbies', methods=['GET'])
 def get_all_public_lobbies() -> Tuple[List[Lobby], int]:
     public_lobbies = [
@@ -78,6 +83,7 @@ def get_all_public_lobbies() -> Tuple[List[Lobby], int]:
     ]
 
     return jsonify(public_lobbies), 200
+
 
 # Technically anyone can change anyones username unless we add authentication
 @lobby_bp.route('/lobbies/<lobby_code>/users/<user_id>', methods=['PUT'])
@@ -101,4 +107,3 @@ def change_username(lobby_code: str, user_id: str) -> Tuple[ChangeNameResponse, 
     lobby['players'][user_id] = new_username
 
     return jsonify({"message": "Username changed successfully"}), 200
-

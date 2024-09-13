@@ -8,7 +8,7 @@ threshold = 13 #the highest the threshold, the more strict. Lower it to capture 
 morph_kernel = (9, 9) # no idea, tweak when the other two are not enough
 
 # Paths to ML model stuff for face recognition
-current_dir = base_path = Path(__file__).resolve().parent
+base_path = Path(__file__).resolve().parent
 prototxt_path = base_path.joinpath('deploy.prototxt')
 model_path = base_path.joinpath('res_ssd_300Dim.caffeModel')
 
