@@ -50,8 +50,12 @@ def join_lobby(lobby_code: str) -> Tuple[JoinLobbyResponse, int]:
         return jsonify({"error": "Lobby not found"}), 404
 
     lobby = lobbies[lobby_code]
+
+    if len(lobby['players']) >= 6:
+        return jsonify({"error": "Lobby is full, limit of 6 players reached"}), 400
+
     if user_name in lobby['players'].values():
-        return jsonify({"error": "Username already exists in the lobby"}), 400
+        return jsonify({"error": "Username already exists in the lobby"}), 409
 
     user_id = str(uuid.uuid4())
 
