@@ -43,8 +43,8 @@ export default class GameScene extends Phaser.Scene {
 
   createPlayerCard() {
     this.cardMechanics.createCard(
-      100,
-      100,
+      150,
+      370,
       gameState.playerName,
       0x0000ff,
       () => {
@@ -80,6 +80,7 @@ export default class GameScene extends Phaser.Scene {
       this.victorySign.text = "YOU LOSE";
       this.victorySign.setFill("#FF0000");
     }
+    this.shade.setAlpha(1);
     this.tweens.add({
       targets: this.victorySign,
       scale: { from: 0, to: 1 },
@@ -90,6 +91,12 @@ export default class GameScene extends Phaser.Scene {
   }
 
   createVictorySign() {
+    this.shade = this.add.graphics();
+    this.shade.fillStyle(0x000000, 0.7);
+    this.shade.fillRect(0, 0, sizes.width, sizes.height);
+    this.shade.setAlpha(0);
+    this.shade.setDepth(60);
+
     this.victorySign = this.add.text(
       sizes.width / 2,
       sizes.height / 2,
@@ -102,6 +109,7 @@ export default class GameScene extends Phaser.Scene {
     );
     this.victorySign.setOrigin(0.5);
     this.victorySign.setAlpha(0);
+    this.victorySign.setDepth(70);
   }
 
   isGameActive() {

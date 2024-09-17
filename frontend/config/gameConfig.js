@@ -1,5 +1,5 @@
 export const sizes = {
-  width: 300,
+  width: 320,
   height: 500,
 };
 
@@ -12,5 +12,5 @@ export const gameState = {
 
 export const gameRules = {
   totalAmountOfCards: 10,
-  pilePosition: { x: 400, y: 100 },
+  pilePosition: { x: 150, y: 130 },
 };

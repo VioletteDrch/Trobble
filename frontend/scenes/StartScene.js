@@ -67,10 +67,6 @@ export default class StartScene extends Phaser.Scene {
   }
 
   createLobby(playerName) {
-    if (playerName === "andre") {
-      this.scene.start("scene-game", { playerName, lobbyCode: 123 });
-    }
-    return;
     fetch("http://localhost:5000/lobbies", {
       method: "POST",
       headers: {
