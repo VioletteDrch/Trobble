@@ -8,21 +8,30 @@ export default class StartScene extends Phaser.Scene {
   preload() {
     this.load.image("createLobby", "/assets/create-lobby.png");
     this.load.image("joinLobby", "/assets/join-lobby.png");
+    this.load.image("logo", "/assets/logo.png");
   }
 
   create() {
     this.cameras.main.setBackgroundColor("#FFFFC0");
+    this.logo = this.add
+      .image(
+        160,
+        75,
+        "logo"
+      ).setScale(0.4);
+
     this.nameText = this.add
       .text(
         this.scale.width / 2,
         this.scale.height / 2 - 50,
-        "Enter your name:",
+        "Enter your name:\n",
         {
-          fontSize: "32px",
+          fontSize: "28px",
           fill: "#c671ff",
+          align: "center"
         }
       )
-      .setOrigin(0.5);
+      .setOrigin(0.5, 0.5);
 
     this.enteredName = "";
 
@@ -32,13 +41,13 @@ export default class StartScene extends Phaser.Scene {
       } else if (event.key.length === 1 && this.enteredName.length < 15) {
         this.enteredName += event.key;
       }
-      this.nameText.setText(`Enter your name: ${this.enteredName}`);
+      this.nameText.setText(`Enter your name:\n${this.enteredName}`);
     });
 
     this.add
       .image(
-        this.scale.width / 2 - 150,
-        this.scale.height / 2 + 50,
+        this.scale.width / 2,
+        this.scale.height / 2 + 75,
         "createLobby"
       )
       .setInteractive()
@@ -52,8 +61,8 @@ export default class StartScene extends Phaser.Scene {
 
     this.add
       .image(
-        this.scale.width / 2 + 150,
-        this.scale.height / 2 + 50,
+        this.scale.width / 2,
+        this.scale.height / 2 + 160,
         "joinLobby"
       )
       .setInteractive()
