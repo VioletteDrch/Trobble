@@ -3,3 +3,5 @@
 .Python
 *.iml
 pyvenv.cfg
+
+/.venv
