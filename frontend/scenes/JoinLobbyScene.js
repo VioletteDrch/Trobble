@@ -26,7 +26,7 @@ export default class JoinLobbyScene extends Phaser.Scene {
     this.input.keyboard.on('keydown', (event) => {
       if (event.keyCode === 8 && this.lobbyCode.length > 0) {
         this.lobbyCode = this.lobbyCode.slice(0, -1);
-      } else if (event.key.length === 1 && this.lobbyCode.length < 15) {
+      } else if (event.key.length === 1 && this.lobbyCode.length < 7) {
         this.lobbyCode += event.key;
       }
       this.nameText.setText(`Enter lobby code: ${this.lobbyCode}`);
@@ -38,7 +38,7 @@ export default class JoinLobbyScene extends Phaser.Scene {
         if (this.lobbyCode.length > 0) {
           this.joinLobby(this.lobbyCode, this.playerName);
         } else {
-          alert("Please enter a code");
+          alert("Please enter a lobby code");
         }
       });
   }
@@ -55,9 +55,11 @@ export default class JoinLobbyScene extends Phaser.Scene {
     })
     .then(response => response.json())
     .then(data => {
-      console.log(data);
-      this.scene.start('create-lobby-scene', { playerName, lobbyCode });
-    })
-    .catch(console.error);
+      if (data.error) {
+        alert(data.error);
+      } else {
+        this.scene.start('create-lobby-scene', { playerName, lobbyCode, isHost: false });
+      }
+    });
+    }
   }
-}

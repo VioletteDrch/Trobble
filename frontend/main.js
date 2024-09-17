@@ -1,3 +1,5 @@
+import "./style.css";
+import Phaser from "phaser";
 import { sizes } from "./config/gameConfig";
 import StartScene from "./scenes/StartScene";
 import CreateLobbyScene from "./scenes/CreateLobbyScene";
@@ -16,7 +18,7 @@ const config = {
       debug: false,
     },
   },
-  scene: [GameScene],
+  scene: [StartScene, CreateLobbyScene, JoinLobbyScene, GameScene],
 };
 
 const game = new Phaser.Game(config);
