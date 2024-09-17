@@ -2,7 +2,7 @@ import {
   retrieveImages,
   getImagePositions,
   getImageAngles,
-} from "../images/image-puller";
+} from "../resources/resource-puller";
 
 export class CardMechanics {
   constructor(gameState, gameRules, scene) {
@@ -61,12 +61,13 @@ export class CardMechanics {
 
   moveCardToPile(card, pilePosition) {
     const highlight = this.scene.add.graphics();
-
+    const sound = this.scene.sound.add(card.playerName);
+    sound.play();
     const glowColor = card.playerColor;
     const steps = 6;
     const nameText = this.scene.add.text(
       card.x,
-      card.y - card.displayHeight / 2 - 20,
+      card.y - card.displayHeight / 2,
       card.playerName,
       {
         font: "16px Arial",
@@ -92,13 +93,13 @@ export class CardMechanics {
         highlight.clear();
 
         for (let i = 0; i < steps; i++) {
-          const radius = card.displayWidth / 2 + i * 2;
+          const radius = card.displayWidth / 2 + i * 2 + 10;
           const alpha = 1 - i * (1 / steps);
           highlight.lineStyle(2, glowColor, alpha);
           highlight.strokeCircle(card.x, card.y, radius);
         }
 
-        nameText.setPosition(card.x, card.y - card.displayHeight / 2 - 10);
+        nameText.setPosition(card.x, card.y - card.displayHeight / 2 - 15);
       },
       onComplete: () => {
         this.scene.tweens.add({
@@ -109,12 +110,13 @@ export class CardMechanics {
           onComplete: () => {
             highlight.destroy();
             nameText.destroy();
+            sound.destroy();
           },
         });
       },
     });
 
-    return [highlight, nameText];
+    return [highlight, nameText, sound];
   }
 
   createCard(x, y, playerName, playerColor, onScoring) {
@@ -136,10 +138,10 @@ export class CardMechanics {
     const card = this.scene.add.container(x, y);
     const circle = this.scene.add.graphics();
     circle.fillStyle(0xfffff0, 1);
-    circle.fillCircle(0, 0, 100);
+    circle.fillCircle(0, 0, 110);
     const shadow = this.scene.add.graphics();
     shadow.fillStyle(0x000000, 0.5);
-    shadow.fillCircle(5, 5, 100);
+    shadow.fillCircle(5, 5, 110);
     card.add(shadow);
     card.add(circle);
     card.setSize(200, 200);

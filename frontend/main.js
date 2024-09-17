@@ -1,7 +1,10 @@
 import "./style.css";
 import Phaser from "phaser";
 import { CardMechanics } from "./public/src/cards/card-mechanics";
-import { retrieveImages } from "./public/src/images/image-puller";
+import {
+  retrieveImages,
+  retrieveSoundEffects,
+} from "./public/src/resources/resource-puller";
 
 const sizes = {
   width: 300,
@@ -11,13 +14,13 @@ const sizes = {
 const gameState = {
   points: 0,
   pileSize: 1,
-  playerName: "Andre",
+  playerName: "andre",
   currentAnimations: [],
 };
 
 const gameRules = {
   totalAmountOfCards: 10,
-  pilePosition: { x: 150, y: 120 },
+  pilePosition: { x: 150, y: 130 },
 };
 
 class GameScene extends Phaser.Scene {
@@ -30,6 +33,9 @@ class GameScene extends Phaser.Scene {
   preload() {
     retrieveImages().forEach((image) => {
       this.load.image(image.name, image.url);
+    });
+    retrieveSoundEffects().forEach((sound) => {
+      this.load.audio(sound.name, sound.url);
     });
     this.load.image("bg", "/assets/background.jpg");
   }
@@ -54,7 +60,7 @@ class GameScene extends Phaser.Scene {
   createPlayerCard() {
     this.cardMechanics.createCard(
       150,
-      350,
+      380,
       gameState.playerName,
       0x0000ff,
       () => {
