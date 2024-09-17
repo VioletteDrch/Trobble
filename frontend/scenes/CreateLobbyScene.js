@@ -12,27 +12,37 @@ export default class CreateLobbyScene extends Phaser.Scene {
   init(data) {
     this.playerName = data.playerName;
     this.lobbyCode = data.lobbyCode;
+    this.isHost = data.isHost;
   }
 
   create() {
     this.cameras.main.setBackgroundColor("#FFFFC0");
 
-    this.lobbyCodeText = this.add.text(this.scale.width / 2, this.scale.height / 2 - 100, `Lobby Code: ${this.lobbyCode}`, {
+    this.lobbyCodeText = this.add.text(this.scale.width / 2, this.scale.height / 2 - 50, `Lobby Code: ${this.lobbyCode}`, {
       fontSize: '32px',
       fontStyle: "bold",
       fill: '#c671ff',
     }).setOrigin(0.5);
 
-    this.playersList = this.add.text(this.scale.width / 2, this.scale.height / 2, "Loading players...", {
+    this.playersList = this.add.text(100, 50, "Loading players...", {
       fontSize: '24px',
       fill: '#c671ff',
     }).setOrigin(0.5);
 
-    this.startButton = this.add.image(this.scale.width / 2, this.scale.height / 2 + 100, "startGame")
-      .setInteractive()
-      .on("pointerdown", () => {
-        this.scene.start('scene-game');
-      });
+    if (this.isHost) {
+      this.startButton = this.add.image(this.scale.width / 2, this.scale.height / 2 + 50, "startGame")
+        .setInteractive()
+        .on("pointerdown", () => {
+          this.scene.start('scene-game');
+        });
+    } else {
+      this.loadingText = this.add.text(this.scale.width / 2, this.scale.height / 2 + 50, "Waiting for host to start game...",
+        {
+          fontSize: '24px',
+          fill: '#c671ff',
+        }
+      ).setOrigin(0.5);
+    }
 
     this.fetchPlayersList();
 
