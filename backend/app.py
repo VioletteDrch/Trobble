@@ -1,7 +1,11 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
+import uuid
+import random
+import string
 from face_extractor.face_extractor import extract_face
+from lobby.lobby_controller import lobby_bp
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for cross-origin requests
@@ -11,6 +15,8 @@ RAW_FOLDER = os.path.join(IMAGES_FOLDER, 'raw')
 PROCESSED_FOLDER = os.path.join(IMAGES_FOLDER, 'processed')
 app.config['RAW_FOLDER'] = RAW_FOLDER
 app.config['PROCESSED_FOLDER'] = PROCESSED_FOLDER
+
+app.register_blueprint(lobby_bp)
 
 # Ensure the folders exist
 os.makedirs(RAW_FOLDER, exist_ok=True)

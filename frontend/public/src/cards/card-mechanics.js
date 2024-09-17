@@ -3,11 +3,10 @@ import {
   getImagePositions,
   getImageAngles,
 } from "../resources/resource-puller";
+import { gameRules, gameState, sizes } from "../../../config/gameConfig";
 
 export class CardMechanics {
-  constructor(gameState, gameRules, scene) {
-    this.gameState = gameState;
-    this.gameRules = gameRules;
+  constructor(scene) {
     this.scene = scene;
     this.totalImagesPerCard = 7;
   }
@@ -29,7 +28,7 @@ export class CardMechanics {
     image.setInteractive();
     image.on("pointerdown", () => {
       if (this.matches(image)) {
-        this.gameState.currentAnimations = this.score(card);
+        gameState.activeAnimations = this.score(card);
         onScoring();
       }
     });
@@ -45,18 +44,18 @@ export class CardMechanics {
   }
 
   isGameActive() {
-    return this.gameState.pileSize <= this.gameRules.totalAmountOfCards;
+    return gameState.pileSize <= gameRules.totalAmountOfCards;
   }
 
   score(card) {
-    card.setDepth(this.gameState.pileSize++);
-    if (card.playerName === this.gameState.playerName) {
-      this.gameState.points++;
+    card.setDepth(gameState.pileSize++);
+    if (card.playerName === gameState.playerName) {
+      gameState.points++;
     }
     if (!this.isGameActive()) {
       this.scene.events.emit("gameEnd", card.playerName);
     }
-    return this.moveCardToPile(card, this.gameRules.pilePosition);
+    return this.moveCardToPile(card, gameRules.pilePosition);
   }
 
   moveCardToPile(card, pilePosition) {
@@ -77,7 +76,7 @@ export class CardMechanics {
     );
     nameText.setOrigin(0.5, 0.5);
 
-    this.gameState.currentAnimations.forEach((animation) => {
+    gameState.activeAnimations.forEach((animation) => {
       if (animation) {
         animation.destroy();
       }
@@ -105,7 +104,7 @@ export class CardMechanics {
         this.scene.tweens.add({
           targets: [highlight, nameText],
           alpha: 0,
-          duration: 2000, // 2 seconds
+          duration: 2000,
           ease: "Linear",
           onComplete: () => {
             highlight.destroy();
