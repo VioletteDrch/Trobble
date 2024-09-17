@@ -76,7 +76,7 @@ def get_lobby(lobby_code: str) -> Tuple[GetLobbyResponse, int]:
 @lobby_bp.route('/lobbies', methods=['GET'])
 def get_all_public_lobbies() -> Tuple[List[Lobby], int]:
     public_lobbies = [
-        {code: lobby}
+        {**lobby, 'lobby_code': code}
         for code, lobby in lobbies.items()
         if not lobby['private']
     ]

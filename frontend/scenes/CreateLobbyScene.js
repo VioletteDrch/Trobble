@@ -18,15 +18,28 @@ export default class CreateLobbyScene extends Phaser.Scene {
   create() {
     this.cameras.main.setBackgroundColor("#FFFFC0");
 
-    this.lobbyCodeText = this.add.text(this.scale.width / 2, 50, `Lobby Code:\n${this.lobbyCode}`, {
+    this.lobbyCodeText = this.add.text(this.scale.width / 2, 50, `Lobby ${this.lobbyCode}`, {
       fontSize: '30px',
       fontStyle: 'bold',
       align: 'center',
       fill: '#c671ff',
     }).setOrigin(0.5);
 
-    this.playersList = this.add.text(this.scale.width / 2, 150, "Loading players...", {
+    this.playersLabel = this.add.text(this.scale.width / 2, 100, `Welcome \n${this.playerName}!`, {
+      fontSize: '22px',
+      fill: '#c671ff',
+      align: 'center'
+    }).setOrigin(0.5);
+
+    this.playersLabel = this.add.text(this.scale.width / 2, 160, "Players:", {
       fontSize: '24px',
+      fill: '#c671ff',
+      fontStyle: 'bold',
+      align: 'center'
+    }).setOrigin(0.5);
+
+    this.playersList = this.add.text(this.scale.width / 2, 180, "You", {
+      fontSize: '22px',
       fill: '#c671ff',
       align: 'center'
     }).setOrigin(0.5);
@@ -68,8 +81,9 @@ export default class CreateLobbyScene extends Phaser.Scene {
   }
 
   updatePlayersList(players) {
-    const playerNames = Object.values(players);
-    this.playersList.setText(`Players:\n${playerNames.join('\n')}`);
-  }
-}
+    const playerNames = Object.values(players).map(player => {
+      return player === this.playerName ? `You` : player;
+    });
+    this.playersList.setText(playerNames.join('\n')).setOrigin(0.5, 0).setY(180);
+  }}
 
