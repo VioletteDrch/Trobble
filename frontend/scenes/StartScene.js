@@ -64,8 +64,7 @@ export default class StartScene extends Phaser.Scene {
     .then(data => {
       const lobbyCode = data.lobby_code;
       this.scene.start('create-lobby-scene', { playerName, lobbyCode, isHost: true });
-    })
-    .catch(alert("Something went wrong"));
+    });
   }
 
   joinLobby(playerName) {

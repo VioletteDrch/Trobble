@@ -60,7 +60,6 @@ export default class JoinLobbyScene extends Phaser.Scene {
       } else {
         this.scene.start('create-lobby-scene', { playerName, lobbyCode, isHost: false });
       }
-    })
-    .catch(alert("Something went wrong"))
+    });
     }
   }
