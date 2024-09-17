@@ -16,9 +16,11 @@ export default class JoinLobbyScene extends Phaser.Scene {
   create() {
     this.cameras.main.setBackgroundColor("#FFFFC0");
 
-    this.nameText = this.add.text(this.scale.width / 2, this.scale.height / 2 - 50, "Enter lobby code:", {
-      fontSize: '32px',
+    this.nameText = this.add.text(this.scale.width / 2, this.scale.height / 2 - 50, "Enter lobby code:\n", {
+      fontSize: '26px',
       fill: '#c671ff',
+      fontStyle: 'bold',
+      align: 'center'
     }).setOrigin(0.5);
 
     this.lobbyCode = "";
@@ -29,10 +31,10 @@ export default class JoinLobbyScene extends Phaser.Scene {
       } else if (event.key.length === 1 && this.lobbyCode.length < 7) {
         this.lobbyCode += event.key;
       }
-      this.nameText.setText(`Enter lobby code: ${this.lobbyCode}`);
+      this.nameText.setText(`Enter lobby code:\n${this.lobbyCode}`);
     });
 
-    this.add.image(this.scale.width / 2, this.scale.height / 2 + 50, "joinLobby")
+    this.add.image(this.scale.width / 2, this.scale.height - 50, "joinLobby")
       .setInteractive()
       .on("pointerdown", () => {
         if (this.lobbyCode.length > 0) {
@@ -44,6 +46,7 @@ export default class JoinLobbyScene extends Phaser.Scene {
   }
 
   joinLobby(lobbyCode, playerName) {
+    lobbyCode = lobbyCode.toUpperCase();
     fetch(`http://localhost:5000/lobbies/${lobbyCode}/join`, {
       method: 'POST',
       headers: {
