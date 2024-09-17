@@ -1,6 +1,9 @@
 import Phaser from "phaser";
 import { CardMechanics } from "../public/src/cards/card-mechanics";
-import { retrieveImages } from "../public/src/images/image-puller";
+import {
+  retrieveImages,
+  retrieveSoundEffects,
+} from "../public/src/resources/resource-puller";
 import { gameRules, gameState, sizes } from "../config/gameConfig";
 
 export default class GameScene extends Phaser.Scene {
@@ -8,11 +11,14 @@ export default class GameScene extends Phaser.Scene {
     super("scene-game");
   }
 
-  cardMechanics = new CardMechanics(gameState, gameRules, this);
+  cardMechanics = new CardMechanics(this);
 
   preload() {
     retrieveImages().forEach((image) => {
       this.load.image(image.name, image.url);
+    });
+    retrieveSoundEffects().forEach((sound) => {
+      this.load.audio(sound.name, sound.url);
     });
     this.load.image("bg", "/assets/background.jpg");
   }
@@ -23,6 +29,7 @@ export default class GameScene extends Phaser.Scene {
       gameRules.pilePosition.x,
       gameRules.pilePosition.y,
       "pile",
+      0xfff00,
       () => {}
     );
     this.createPlayerCard();
@@ -35,9 +42,15 @@ export default class GameScene extends Phaser.Scene {
   update() {}
 
   createPlayerCard() {
-    this.cardMechanics.createCard(100, 100, gameState.playerName, () => {
-      this.createPlayerCard();
-    });
+    this.cardMechanics.createCard(
+      150,
+      370,
+      gameState.playerName,
+      0x0000ff,
+      () => {
+        this.createPlayerCard();
+      }
+    );
   }
 
   putOtherPlayersCardOnPile() {
@@ -45,6 +58,7 @@ export default class GameScene extends Phaser.Scene {
       300,
       300,
       "violette",
+      0x7f00ff,
       () => {}
     );
     this.cardMechanics.score(otherPlayersCard);
@@ -66,6 +80,7 @@ export default class GameScene extends Phaser.Scene {
       this.victorySign.text = "YOU LOSE";
       this.victorySign.setFill("#FF0000");
     }
+    this.shade.setAlpha(1);
     this.tweens.add({
       targets: this.victorySign,
       scale: { from: 0, to: 1 },
@@ -76,6 +91,12 @@ export default class GameScene extends Phaser.Scene {
   }
 
   createVictorySign() {
+    this.shade = this.add.graphics();
+    this.shade.fillStyle(0x000000, 0.7);
+    this.shade.fillRect(0, 0, sizes.width, sizes.height);
+    this.shade.setAlpha(0);
+    this.shade.setDepth(60);
+
     this.victorySign = this.add.text(
       sizes.width / 2,
       sizes.height / 2,
@@ -88,6 +109,7 @@ export default class GameScene extends Phaser.Scene {
     );
     this.victorySign.setOrigin(0.5);
     this.victorySign.setAlpha(0);
+    this.victorySign.setDepth(70);
   }
 
   isGameActive() {

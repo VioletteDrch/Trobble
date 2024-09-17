@@ -1,15 +1,16 @@
 export const sizes = {
-  width: 1000,
+  width: 320,
   height: 500,
 };
 
 export const gameState = {
   points: 0,
   pileSize: 1,
-  playerName: "Andre",
+  playerName: "andre",
+  activeAnimations: [],
 };
 
 export const gameRules = {
   totalAmountOfCards: 10,
-  pilePosition: { x: 400, y: 100 },
+  pilePosition: { x: 150, y: 130 },
 };

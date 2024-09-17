@@ -71,3 +71,16 @@ export function getImagePositions() {
 export function getImageAngles() {
   return [-20, -10, 0, 10, 20];
 }
+
+export function retrieveSoundEffects() {
+  return [
+    {
+      name: "andre",
+      url: "assets/sound_effects/choir.mp3",
+    },
+    {
+      name: "violette",
+      url: "assets/sound_effects/box.mp3",
+    },
+  ];
+}
