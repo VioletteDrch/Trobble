@@ -3,7 +3,7 @@ from os import listdir
 
 
 from flask import Blueprint, request, jsonify
-from game_state_elements import GameStateManager
+from backend.game_logic.game_state_elements import GameStateManager
 import os
 
 game_logic_bp = Blueprint('game_logic', __name__)
@@ -16,7 +16,6 @@ IMAGES_FOLDER = backend_dir.joinpath('images').joinpath('processed')
 def get_symbols():
     symbols_files = listdir(IMAGES_FOLDER)
     # for s in symbols_files:
-
 
 
 @game_logic_bp.route('/get_game_state', methods=['GET'])
