@@ -1,6 +1,6 @@
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  --dkClr: #181818;
+  --dkClr: #FFFFC0;
   --liClr: whitesmoke;
   --accClr: #0d0d35;
 }
@@ -38,7 +38,6 @@ main {
 }
 
 #gameCanvas {
-  border: 1px solid red;
   position: absolute;
   top: 50%;
   left: 50%;
