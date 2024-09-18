@@ -50,7 +50,7 @@ export default class StartScene extends Phaser.Scene {
         160,
         160,
         "logo"
-      ).setScale(0.6);
+      ).setScale(0.3);
 
     this.enteredName = this.generateRandomName();
 
