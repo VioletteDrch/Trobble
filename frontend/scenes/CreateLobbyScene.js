@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import {api} from "../config/serverConfig.js";
 
 export default class CreateLobbyScene extends Phaser.Scene {
   constructor() {
@@ -70,7 +71,7 @@ export default class CreateLobbyScene extends Phaser.Scene {
   }
 
   fetchPlayersList() {
-    fetch(`http://localhost:5000/lobbies/${this.lobbyCode}`)
+    fetch(`${api.host()}/lobbies/${this.lobbyCode}`)
       .then(response => response.json())
       .then(data => {
         this.updatePlayersList(data.players);

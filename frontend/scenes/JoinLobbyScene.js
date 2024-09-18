@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import {api} from "../config/serverConfig.js";
 
 export default class JoinLobbyScene extends Phaser.Scene {
   constructor() {
@@ -43,7 +44,7 @@ export default class JoinLobbyScene extends Phaser.Scene {
   }
 
   fetchLobbies() {
-    fetch('http://localhost:5000/lobbies')
+    fetch(`${api.host()}/lobbies`)
       .then(response => response.json())
       .then(lobbies => {
         this.updateLobbiesList(lobbies);
@@ -83,7 +84,7 @@ export default class JoinLobbyScene extends Phaser.Scene {
   }
 
   joinLobby(lobbyCode, playerName) {
-    fetch(`http://localhost:5000/lobbies/${lobbyCode}/join`, {
+    fetch(`${api.host()}/lobbies/${lobbyCode}/join`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
