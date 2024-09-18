@@ -4,11 +4,10 @@ import uuid
 import random
 import string
 from .lobby_types import *
+from .lobby_repository import *
 
 lobby_bp = Blueprint('lobby', __name__)
 
-# We can replace this with something better when we need it
-lobbies: Dict[str, Lobby] = {}
 
 def generate_lobby_code(length: int = 6) -> str:
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
@@ -18,10 +17,10 @@ def create_lobby() -> Tuple[CreateLobbyResponse, int]:
     data = request.get_json()
     host_name: Optional[str] = data.get('host_name')
     private: bool = data.get('private', False)
-    
+
     if not host_name:
         return jsonify({"error": "Host name is required"}), 400
-    
+
     lobby_code = generate_lobby_code()
 
     # Very unlikely to be a clash but just in case
@@ -105,4 +104,3 @@ def change_username(lobby_code: str, user_id: str) -> Tuple[ChangeNameResponse, 
     lobby['players'][user_id] = new_username
 
     return jsonify({"message": "Username changed successfully"}), 200
-
