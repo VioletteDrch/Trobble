@@ -7,6 +7,7 @@ export default class JoinLobbyScene extends Phaser.Scene {
 
   preload() {
     this.load.image("joinLobby", "/assets/join-lobby.png");
+    this.load.image("refresh", "/assets/refresh.png");
   }
 
   init(data) {
@@ -16,37 +17,72 @@ export default class JoinLobbyScene extends Phaser.Scene {
   create() {
     this.cameras.main.setBackgroundColor("#FFFFC0");
 
-    this.nameText = this.add.text(this.scale.width / 2, this.scale.height / 2 - 50, "Enter lobby code:\n", {
-      fontSize: '26px',
+    this.titleText = this.add.text(this.scale.width / 2, 50, "Select a lobby:", {
+      fontSize: '28px',
       fill: '#c671ff',
       fontStyle: 'bold',
       align: 'center'
     }).setOrigin(0.5);
 
-    this.lobbyCode = "";
+    this.lobbiesContainer = this.add.container(this.scale.width / 2, 100);
 
-    this.input.keyboard.on('keydown', (event) => {
-      if (event.keyCode === 8 && this.lobbyCode.length > 0) {
-        this.lobbyCode = this.lobbyCode.slice(0, -1);
-      } else if (event.key.length === 1 && this.lobbyCode.length < 7) {
-        this.lobbyCode += event.key;
-      }
-      this.nameText.setText(`Enter lobby code:\n${this.lobbyCode}`);
+    this.lobbiesList = this.add.text(0, 0, "Loading lobbies...", {
+      fontSize: '24px',
+      fill: '#c671ff',
+      align: 'center'
     });
 
-    this.add.image(this.scale.width / 2, this.scale.height - 50, "joinLobby")
+    this.lobbiesContainer.add(this.lobbiesList);
+
+    this.refreshButton = this.add.image(this.scale.width / 2, this.scale.height - 50, "refresh")
       .setInteractive()
-      .on("pointerdown", () => {
-        if (this.lobbyCode.length > 0) {
-          this.joinLobby(this.lobbyCode, this.playerName);
-        } else {
-          alert("Please enter a lobby code");
-        }
+      .on("pointerdown", this.fetchLobbies.bind(this))
+      .setOrigin(0.5);
+
+    this.fetchLobbies();
+  }
+
+  fetchLobbies() {
+    fetch('http://localhost:5000/lobbies')
+      .then(response => response.json())
+      .then(lobbies => {
+        this.updateLobbiesList(lobbies);
+      })
+      .catch(error => {
+        console.error("Error fetching lobbies:", error);
       });
   }
 
+  updateLobbiesList(lobbies) {
+    this.lobbiesContainer.removeAll(true);
+
+    if (lobbies.length === 0) {
+      this.lobbiesList.setText("No lobbies available");
+      return;
+    }
+
+    lobbies.forEach((lobby, index) => {
+      if (index >= 5) {
+        return;
+      }
+      const lobbyCode = lobby['lobby_code'];
+      const button = this.add.text(0, index * 60, lobbyCode, {
+        fontSize: '30px',
+        fill: '#fff',
+        backgroundColor: '#c671ff',
+        padding: { x: 10, y: 5 }
+      }).setInteractive()
+        .on('pointerdown', () => {
+          this.joinLobby(lobbyCode, this.playerName);
+        }).setOrigin(0.5);
+
+      this.lobbiesContainer.add(button);
+    });
+
+    this.lobbiesContainer.setPosition(this.scale.width / 2, 100);
+  }
+
   joinLobby(lobbyCode, playerName) {
-    lobbyCode = lobbyCode.toUpperCase();
     fetch(`http://localhost:5000/lobbies/${lobbyCode}/join`, {
       method: 'POST',
       headers: {
@@ -63,6 +99,10 @@ export default class JoinLobbyScene extends Phaser.Scene {
       } else {
         this.scene.start('create-lobby-scene', { playerName, lobbyCode, isHost: false });
       }
+    })
+    .catch(error => {
+      console.error("Error joining lobby:", error);
     });
-    }
   }
+}
+
