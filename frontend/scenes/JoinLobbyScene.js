@@ -1,5 +1,6 @@
 import Phaser from "phaser";
-import {api} from "../config/serverConfig.js";
+import { api } from "../config/serverConfig.js";
+import ErrorMessage from "../components/ErrorMessage.js";
 
 export default class JoinLobbyScene extends Phaser.Scene {
   constructor() {
@@ -16,94 +17,97 @@ export default class JoinLobbyScene extends Phaser.Scene {
   }
 
   create() {
-    this.cameras.main.setBackgroundColor("#FFFFC0");
+    this.createText("Select a lobby:", 50, "28px");
+    this.createLoadingMessage();
+    this.createRefreshButton();
 
-    this.titleText = this.add.text(this.scale.width / 2, 50, "Select a lobby:", {
-      fontSize: '28px',
-      fill: '#c671ff',
-      fontStyle: 'bold',
-      align: 'center'
-    }).setOrigin(0.5);
-
-    this.lobbiesContainer = this.add.container(this.scale.width / 2, 100);
-
-    this.lobbiesList = this.add.text(0, 0, "Loading lobbies...", {
-      fontSize: '24px',
-      fill: '#c671ff',
-      align: 'center'
-    });
-
-    this.lobbiesContainer.add(this.lobbiesList);
-
-    this.refreshButton = this.add.image(this.scale.width / 2, this.scale.height - 50, "refresh")
-      .setInteractive()
-      .on("pointerdown", this.fetchLobbies.bind(this))
-      .setOrigin(0.5);
-
+    this.errorMessage = new ErrorMessage(this, this.scale.width / 2, this.scale.height / 2, this.scale.width * 0.9);
+    
     this.fetchLobbies();
   }
 
-  fetchLobbies() {
-    fetch(`${api.host()}/lobbies`)
-      .then(response => response.json())
-      .then(lobbies => {
-        this.updateLobbiesList(lobbies);
-      })
-      .catch(error => {
-        console.error("Error fetching lobbies:", error);
-      });
+  createText(text, y, fontSize) {
+    return this.add.text(this.scale.width / 2, y, text, {
+      fontSize,
+      fill: "#c671ff",
+      fontStyle: "bold",
+      align: "center",
+    }).setOrigin(0.5);
+  }
+
+  createLoadingMessage() {
+    this.lobbiesLoadingMessage = this.createText("Loading lobbies...", this.scale.height / 2, "24px");
+    this.lobbiesContainer = this.add.container(this.scale.width / 2, 100);
+  }
+
+  createRefreshButton() {
+    this.refreshButton = this.add.image(this.scale.width / 2, this.scale.height - 50, "refresh")
+      .setInteractive()
+      .on("pointerdown", () => this.fetchLobbies())
+      .setOrigin(0.5);
   }
 
   updateLobbiesList(lobbies) {
     this.lobbiesContainer.removeAll(true);
+    this.lobbiesLoadingMessage.setText(lobbies.length === 0 ? "No lobbies found" : "");
 
-    if (lobbies.length === 0) {
-      this.lobbiesList.setText("No lobbies available");
-      return;
-    }
-
-    lobbies.forEach((lobby, index) => {
-      if (index >= 5) {
-        return;
-      }
-      const lobbyCode = lobby['lobby_code'];
-      const button = this.add.text(0, index * 60, lobbyCode, {
-        fontSize: '30px',
-        fill: '#fff',
-        backgroundColor: '#c671ff',
-        padding: { x: 10, y: 5 }
-      }).setInteractive()
-        .on('pointerdown', () => {
-          this.joinLobby(lobbyCode, this.playerName);
-        }).setOrigin(0.5);
-
+    lobbies.slice(0, 5).forEach((lobby, index) => {
+      const button = this.createLobbyButton(lobby["lobby_code"], index * 60);
       this.lobbiesContainer.add(button);
     });
+  }
 
-    this.lobbiesContainer.setPosition(this.scale.width / 2, 100);
+  createLobbyButton(lobbyCode, y) {
+    return this.add.text(0, y, lobbyCode, {
+      fontSize: "30px",
+      fill: "#fff",
+      backgroundColor: "#c671ff",
+      padding: { x: 10, y: 5 },
+    }).setInteractive()
+      .on("pointerdown", () => this.joinLobby(lobbyCode, this.playerName))
+      .setOrigin(0.5);
+  }
+
+  fetchLobbies() {
+    fetch(`${api.host()}/lobbies`)
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(data => {
+            throw new Error(data.error || "Failed to fetch lobbies");
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        this.updateLobbiesList(data);
+      })
+      .catch(error => {
+        console.error("Error fetching lobbies:", error);
+        this.errorMessage.show(error.message);
+      });
   }
 
   joinLobby(lobbyCode, playerName) {
     fetch(`${api.host()}/lobbies/${lobbyCode}/join`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username: playerName,
-      }),
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: playerName }),
     })
-    .then(response => response.json())
-    .then(data => {
-      if (data.error) {
-        alert(data.error);
-      } else {
-        this.scene.start('create-lobby-scene', { playerName, lobbyCode, isHost: false });
-      }
-    })
-    .catch(error => {
-      console.error("Error joining lobby:", error);
-    });
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(data => {
+            throw new Error(data.error || "Failed to join lobby");
+          });
+        }
+        return response.json();
+      })
+      .then(() => {
+        this.scene.start("lobby-scene", { playerName, lobbyCode, isHost: false });
+      })
+      .catch(error => {
+        this.errorMessage.show(error.message || "Failed to join lobby");
+        console.error("Error joining lobby:", error);
+      });
   }
 }
 

@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import api from "../config/serverConfig.js";
+import ErrorMessage from "../components/ErrorMessage.js";
 
 export default class StartScene extends Phaser.Scene {
   constructor() {
@@ -24,7 +25,7 @@ export default class StartScene extends Phaser.Scene {
       "SkagenSild",
       "Lego",
       "Dørhåndtag",
-      "Klovn"
+      "Klovn",
     ];
 
     const titles = [
@@ -34,8 +35,8 @@ export default class StartScene extends Phaser.Scene {
       "Mester",
       "Lord",
       "Ekspert",
-      "Junkie"
-    ]
+      "Junkie",
+    ];
 
     const word1 = objects[Math.floor(Math.random() * objects.length)];
     const word2 = titles[Math.floor(Math.random() * titles.length)];
@@ -45,45 +46,26 @@ export default class StartScene extends Phaser.Scene {
   }
 
   create() {
-    this.cameras.main.setBackgroundColor("#FFFFC0");
-    this.logo = this.add
-      .image(
-        160,
-        160,
-        "logo"
-      ).setScale(0.3);
+    this.logo = this.add.image(160, 160, "logo").setScale(0.3);
 
-    this.enteredName = this.generateRandomName();
+    this.userName = this.generateRandomName();
 
     this.add
-      .image(
-        this.scale.width / 2,
-        this.scale.height / 2 + 115,
-        "createLobby"
-      )
+      .image(this.scale.width / 2, this.scale.height / 2 + 115, "createLobby")
       .setInteractive()
-      .on("pointerdown", () => {
-        if (this.enteredName.length > 0) {
-          this.createLobby(this.enteredName);
-        } else {
-          alert("Please enter a name");
-        }
-      });
+      .on("pointerdown", () => this.createLobby(this.userName));
 
     this.add
-      .image(
-        this.scale.width / 2,
-        this.scale.height - 50,
-        "joinLobby"
-      )
+      .image(this.scale.width / 2, this.scale.height - 50, "joinLobby")
       .setInteractive()
-      .on("pointerdown", () => {
-        if (this.enteredName.length > 0) {
-          this.joinLobby(this.enteredName);
-        } else {
-          alert("Please enter a name");
-        }
-      });
+      .on("pointerdown", () => this.joinLobby(this.userName));
+
+    this.errorMessage = new ErrorMessage(
+      this,
+      this.scale.width / 2,
+      this.scale.height / 2,
+      this.scale.width * 0.9,
+    );
   }
 
   createLobby(playerName) {
@@ -97,14 +79,24 @@ export default class StartScene extends Phaser.Scene {
         private: false,
       }),
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((data) => {
+            throw new Error(data.error || "Failed to create lobby");
+          });
+        }
+        return response.json();
+      })
       .then((data) => {
-        const lobbyCode = data.lobby_code;
-        this.scene.start("create-lobby-scene", {
+        this.scene.start("lobby-scene", {
           playerName,
-          lobbyCode,
+          lobbyCode: data.lobby_code,
           isHost: true,
         });
+      })
+      .catch((error) => {
+        console.error("Error creating lobby:", error);
+        this.errorMessage.show(error.message || "Failed to create lobby");
       });
   }
 
@@ -112,3 +104,4 @@ export default class StartScene extends Phaser.Scene {
     this.scene.start("join-lobby-scene", { playerName });
   }
 }
+
