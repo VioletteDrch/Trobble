@@ -3,6 +3,7 @@
   --dkClr: #181818;
   --liClr: whitesmoke;
   --accClr: #0d0d35;
+  --canvasBGColor: #ffffc0;
 }
 
 * {
@@ -17,7 +18,7 @@ body {
 }
 
 body {
-  background-color: var(--dkClr);
+  background-color: var(--canvasBGColor);
   color: var(--liClr);
   display: flex;
   flex-direction: column;
@@ -38,11 +39,5 @@ main {
 }
 
 #gameCanvas {
-  border: 1px solid red;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
   z-index: 1;
 }
