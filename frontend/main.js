@@ -10,6 +10,10 @@ const config = {
   type: Phaser.WEBGL,
   width: sizes.width,
   height: sizes.height,
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH
+  },
   canvas: gameCanvas,
   physics: {
     default: "arcade",
@@ -18,8 +22,8 @@ const config = {
       debug: false,
     },
   },
-  //scene: [StartScene, CreateLobbyScene, JoinLobbyScene, GameScene],
-  scene: [GameScene],
+  scene: [StartScene, CreateLobbyScene, JoinLobbyScene, GameScene],
+  // scene: [GameScene],
 };
 
 const game = new Phaser.Game(config);

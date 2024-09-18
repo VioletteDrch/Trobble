@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import {api} from "../config/serverConfig.js";
 
 export default class CreateLobbyScene extends Phaser.Scene {
   constructor() {
@@ -18,25 +19,40 @@ export default class CreateLobbyScene extends Phaser.Scene {
   create() {
     this.cameras.main.setBackgroundColor("#FFFFC0");
 
-    this.lobbyCodeText = this.add.text(this.scale.width / 2, this.scale.height / 2 - 50, `Lobby Code: ${this.lobbyCode}`, {
-      fontSize: '32px',
-      fontStyle: "bold",
+    this.lobbyCodeText = this.add.text(this.scale.width / 2, 50, `Lobby ${this.lobbyCode}`, {
+      fontSize: '30px',
+      fontStyle: 'bold',
+      align: 'center',
       fill: '#c671ff',
     }).setOrigin(0.5);
 
-    this.playersList = this.add.text(100, 50, "Loading players...", {
+    this.playersLabel = this.add.text(this.scale.width / 2, 100, `Welcome \n${this.playerName}!`, {
+      fontSize: '22px',
+      fill: '#c671ff',
+      align: 'center'
+    }).setOrigin(0.5);
+
+    this.playersLabel = this.add.text(this.scale.width / 2, 160, "Players:", {
       fontSize: '24px',
       fill: '#c671ff',
+      fontStyle: 'bold',
+      align: 'center'
+    }).setOrigin(0.5);
+
+    this.playersList = this.add.text(this.scale.width / 2, 180, "You", {
+      fontSize: '22px',
+      fill: '#c671ff',
+      align: 'center'
     }).setOrigin(0.5);
 
     if (this.isHost) {
-      this.startButton = this.add.image(this.scale.width / 2, this.scale.height / 2 + 50, "startGame")
+      this.startButton = this.add.image(this.scale.width / 2, this.scale.height - 50, "startGame")
         .setInteractive()
         .on("pointerdown", () => {
           this.scene.start('scene-game');
         });
     } else {
-      this.loadingText = this.add.text(this.scale.width / 2, this.scale.height / 2 + 50, "Waiting for host to start game...",
+      this.loadingText = this.add.text(this.scale.width / 2, this.scale.height - 50, "Waiting for host\nto start game...",
         {
           fontSize: '24px',
           fill: '#c671ff',
@@ -55,7 +71,7 @@ export default class CreateLobbyScene extends Phaser.Scene {
   }
 
   fetchPlayersList() {
-    fetch(`http://localhost:5000/lobbies/${this.lobbyCode}`)
+    fetch(`${api.host()}/lobbies/${this.lobbyCode}`)
       .then(response => response.json())
       .then(data => {
         this.updatePlayersList(data.players);
@@ -66,8 +82,9 @@ export default class CreateLobbyScene extends Phaser.Scene {
   }
 
   updatePlayersList(players) {
-    const playerNames = Object.values(players);
-    this.playersList.setText(`Players:\n${playerNames.join('\n')}`);
-  }
-}
+    const playerNames = Object.values(players).map(player => {
+      return player === this.playerName ? `You` : player;
+    });
+    this.playersList.setText(playerNames.join('\n')).setOrigin(0.5, 0).setY(180);
+  }}
 

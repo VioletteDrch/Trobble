@@ -4,11 +4,10 @@ import uuid
 import random
 import string
 from .lobby_types import *
+from .lobby_repository import *
 
 lobby_bp = Blueprint('lobby', __name__)
 
-# We can replace this with something better when we need it
-lobbies: Dict[str, Lobby] = {}
 
 
 def generate_lobby_code(length: int = 6) -> str:
@@ -81,7 +80,7 @@ def get_lobby(lobby_code: str) -> Tuple[GetLobbyResponse, int]:
 @lobby_bp.route('/lobbies', methods=['GET'])
 def get_all_public_lobbies() -> Tuple[List[Lobby], int]:
     public_lobbies = [
-        {code: lobby}
+        {**lobby, 'lobby_code': code}
         for code, lobby in lobbies.items()
         if not lobby['private']
     ]

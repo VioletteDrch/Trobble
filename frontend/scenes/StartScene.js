@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import api from "../config/serverConfig.js";
 
 export default class StartScene extends Phaser.Scene {
   constructor() {
@@ -8,37 +9,56 @@ export default class StartScene extends Phaser.Scene {
   preload() {
     this.load.image("createLobby", "/assets/create-lobby.png");
     this.load.image("joinLobby", "/assets/join-lobby.png");
+    this.load.image("logo", "/assets/logo.png");
+  }
+
+  generateRandomName() {
+    const objects = [
+      "Frikadeller",
+      "Smørrebrød",
+      "KimLarsen",
+      "Pølse",
+      "Kage",
+      "Lakrids",
+      "AndersAnd",
+      "SkagenSild",
+      "Lego",
+      "Dørhåndtag",
+      "Klovn"
+    ];
+
+    const titles = [
+      "Konge",
+      "Dronning",
+      "Entusiast",
+      "Mester",
+      "Lord",
+      "Ekspert",
+      "Junkie"
+    ]
+
+    const word1 = objects[Math.floor(Math.random() * objects.length)];
+    const word2 = titles[Math.floor(Math.random() * titles.length)];
+    const number = Math.floor(Math.random() * 99) + 1;
+
+    return `${word1}${word2}${number}`;
   }
 
   create() {
     this.cameras.main.setBackgroundColor("#FFFFC0");
-    this.nameText = this.add
-      .text(
-        this.scale.width / 2,
-        this.scale.height / 2 - 50,
-        "Enter your name:",
-        {
-          fontSize: "32px",
-          fill: "#c671ff",
-        }
-      )
-      .setOrigin(0.5);
+    this.logo = this.add
+      .image(
+        160,
+        160,
+        "logo"
+      ).setScale(0.3);
 
-    this.enteredName = "";
-
-    this.input.keyboard.on("keydown", (event) => {
-      if (event.keyCode === 8 && this.enteredName.length > 0) {
-        this.enteredName = this.enteredName.slice(0, -1);
-      } else if (event.key.length === 1 && this.enteredName.length < 15) {
-        this.enteredName += event.key;
-      }
-      this.nameText.setText(`Enter your name: ${this.enteredName}`);
-    });
+    this.enteredName = this.generateRandomName();
 
     this.add
       .image(
-        this.scale.width / 2 - 150,
-        this.scale.height / 2 + 50,
+        this.scale.width / 2,
+        this.scale.height / 2 + 115,
         "createLobby"
       )
       .setInteractive()
@@ -52,8 +72,8 @@ export default class StartScene extends Phaser.Scene {
 
     this.add
       .image(
-        this.scale.width / 2 + 150,
-        this.scale.height / 2 + 50,
+        this.scale.width / 2,
+        this.scale.height - 50,
         "joinLobby"
       )
       .setInteractive()
@@ -67,14 +87,14 @@ export default class StartScene extends Phaser.Scene {
   }
 
   createLobby(playerName) {
-    fetch("http://localhost:5000/lobbies", {
+    fetch(`${api.host()}/lobbies`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         host_name: playerName,
-        private: true,
+        private: false,
       }),
     })
       .then((response) => response.json())
