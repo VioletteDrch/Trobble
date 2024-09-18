@@ -1,11 +1,13 @@
 import asyncio
 import json
-from websockets.asyncio.server import serve
+from typing_extensions import Any
+from websockets.asyncio.connection import Connection
+from websockets.asyncio.server import serve, broadcast
 from websockets.typing import Origin
 from lobby_repository import *
 
 # TODO will need to handle concurrent access in case multiple players join at the same time
-lobby_connections = dict()
+lobby_connections : Dict[str, Dict[str, Connection]] = dict()
 
 async def handle_player_connected(websocket, player_id):
     async for message in websocket:
@@ -19,6 +21,7 @@ async def add_player_to_lobby(player_id, lobby_code, websocket):
     # todo check that lobby is "joinable", e.g. the player is allowed to join AND game has not started
     connections = lobby_connections.get(lobby_code, dict())
 
+    broadcast(connections.values(), f"Player {player_id} entered the game")
     # todo send message to connected players that a new player is joining
     connections[player_id] = websocket
     lobby_connections[lobby_code] = connections
