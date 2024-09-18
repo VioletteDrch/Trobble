@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import api from "../config/serverConfig.js";
 
 export default class StartScene extends Phaser.Scene {
   constructor() {
@@ -86,7 +87,7 @@ export default class StartScene extends Phaser.Scene {
   }
 
   createLobby(playerName) {
-    fetch("http://localhost:5000/lobbies", {
+    fetch(`${api.host()}/lobbies`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
