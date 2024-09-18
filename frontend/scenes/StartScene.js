@@ -32,7 +32,8 @@ export default class StartScene extends Phaser.Scene {
       "Entusiast",
       "Mester",
       "Lord",
-      "Ekspert"
+      "Ekspert",
+      "Junkie"
     ]
 
     const word1 = objects[Math.floor(Math.random() * objects.length)];
