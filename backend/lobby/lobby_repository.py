@@ -11,10 +11,6 @@ class LobbyRepository:
     def get_lobby(self, lobby_code: str) -> Optional[Lobby]:
         return self._lobbies.get(lobby_code)
 
-    def update_lobby(self, lobby_code: str, lobby: Lobby) -> None:
-        if lobby_code in self._lobbies:
-            self._lobbies[lobby_code] = lobby
-
     def remove_lobby(self, lobby_code: str) -> None:
         if lobby_code in self._lobbies:
             del self._lobbies[lobby_code]
