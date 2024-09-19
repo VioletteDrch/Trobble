@@ -1,7 +1,6 @@
 import Phaser from "phaser";
 import { CardMechanics } from "../public/src/cards/card-mechanics";
 import {
-  retrieveImages,
   retrieveSoundEffects,
 } from "../public/src/resources/resource-puller";
 import { gameRules, gameState, sizes } from "../config/gameConfig";
@@ -16,7 +15,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   preload() {
-    this.fetchGameState(); // endpoint until websocket server is up and running
+    // this.fetchGameState(); // endpoint until websocket server is up and running
     this.fetchImages();
     retrieveSoundEffects().forEach((sound) => {
       this.load.audio(sound.name, sound.url);
@@ -29,6 +28,8 @@ export default class GameScene extends Phaser.Scene {
     const pile = this.cardMechanics.createCard(
       gameRules.pilePosition.x,
       gameRules.pilePosition.y,
+      // imageComb
+        [0, 1, 2, 3, 4, 5, 6, 7],
       "pile",
       0xfff00,
       () => {}
@@ -52,6 +53,7 @@ export default class GameScene extends Phaser.Scene {
     this.cardMechanics.createCard(
       150,
       370,
+        [0, 1, 2, 3, 4, 5, 6, 7],
       gameState.playerName,
       0x0000ff,
       () => {
@@ -64,6 +66,7 @@ export default class GameScene extends Phaser.Scene {
     const otherPlayersCard = this.cardMechanics.createCard(
       300,
       300,
+        [0, 1, 2, 3, 4, 5, 6, 7],
       "violette",
       0x7f00ff,
       () => {}
@@ -130,8 +133,8 @@ export default class GameScene extends Phaser.Scene {
         .then(data => {
           data.forEach((image, index) => {
             const url = `${apiBaseUrl}${image}`;
-            console.log(url)
             const key = `image_${index}`;
+            console.log(key)
             this.load.image(key, url);
           });
         })
