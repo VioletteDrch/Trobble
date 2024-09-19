@@ -14,9 +14,7 @@ export default class GameScene extends Phaser.Scene {
   cardMechanics = new CardMechanics(this);
 
   preload() {
-    retrieveImages().forEach((image) => {
-      this.load.image(image.name, image.url);
-    });
+    this.fetchImages();
     retrieveSoundEffects().forEach((sound) => {
       this.load.audio(sound.name, sound.url);
     });
@@ -114,5 +112,19 @@ export default class GameScene extends Phaser.Scene {
 
   isGameActive() {
     return gameState.pileSize <= gameRules.totalAmountOfCards;
+  }
+
+  fetchImages(){
+    fetch(`${api.host()}/game_logic/get_images`)
+        .then(response => response.json())
+        .then(data => {
+          data.forEach((url, index) => {
+            const key = `image_${index}`;
+            this.load.image(key, url);
+          });
+        })
+        .catch(error => {
+          console.error("Error fetching images:", error);
+        });
   }
 }
