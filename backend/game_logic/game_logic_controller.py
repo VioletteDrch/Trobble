@@ -5,7 +5,7 @@ from flask import Blueprint, request, jsonify
 from backend.game_logic.game_state_elements import GameStateManager
 import os
 
-game_logic_bp = Blueprint('game_logic', __name__)
+game_logic_bp = Blueprint('game-logic', __name__)
 
 backend_dir = Path(__file__).resolve().parent.parent
 IMAGES_FOLDER = backend_dir.joinpath('images').joinpath('processed')
@@ -21,10 +21,10 @@ def get_images_urls():
     return urls
 
 
-@game_logic_bp.route('/game-state', methods=['GET'])  # temp until the websocket server is up and running
-def get_game_state():
-    current_state = {
-        'middleCard': game_state_manager.get_middle_card_compo(),
-        'players': game_state_manager.game_state.players_cards_ids,
-    }
-    return jsonify(current_state)
+# @game_logic_bp.route('/game-state', methods=['GET'])  # temp until the websocket server is up and running
+# def get_game_state():
+#     current_state = {
+#         'middleCard': game_state_manager.get_middle_card_compo(),
+#         'players': game_state_manager.game_state.players_cards_ids,
+#     }
+#     return jsonify(current_state)

@@ -5,6 +5,7 @@ import {
   retrieveSoundEffects,
 } from "../public/src/resources/resource-puller";
 import { gameRules, gameState, sizes } from "../config/gameConfig";
+import api from "../config/serverConfig.js";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -123,10 +124,11 @@ export default class GameScene extends Phaser.Scene {
   }
 
   fetchImages(){
-    fetch(`${api.host()}/game_logic/get_images`)
+    fetch(`${api.host()}/images-list`)
         .then(response => response.json())
         .then(data => {
           data.forEach((url, index) => {
+            console.log(url)
             const key = `image_${index}`;
             this.load.image(key, url);
           });
