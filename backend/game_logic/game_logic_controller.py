@@ -22,12 +22,3 @@ def get_images():
 @game_logic_bp.route('/images/<path:filename>')
 def serve_image(filename):
     return send_from_directory(IMAGES_FOLDER, filename)
-
-
-# @game_logic_bp.route('/game-state', methods=['GET'])  # temp until the websocket server is up and running
-# def get_game_state():
-#     current_state = {
-#         'middleCard': game_state_manager.get_middle_card_compo(),
-#         'players': game_state_manager.game_state.players_cards_ids,
-#     }
-#     return jsonify(current_state)

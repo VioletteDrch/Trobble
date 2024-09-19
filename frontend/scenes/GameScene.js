@@ -15,7 +15,6 @@ export default class GameScene extends Phaser.Scene {
   }
 
   preload() {
-    // this.fetchGameState(); // endpoint until websocket server is up and running
     this.fetchImages();
     retrieveSoundEffects().forEach((sound) => {
       this.load.audio(sound.name, sound.url);
@@ -29,7 +28,7 @@ export default class GameScene extends Phaser.Scene {
       gameRules.pilePosition.x,
       gameRules.pilePosition.y,
       // imageComb
-        [0, 1, 2, 3, 4, 5, 6, 7],
+        [0, 1, 2, 3, 4, 5, 6, 7], // FIXME send from backend instead
       "pile",
       0xfff00,
       () => {}
@@ -53,7 +52,7 @@ export default class GameScene extends Phaser.Scene {
     this.cardMechanics.createCard(
       150,
       370,
-        [0, 1, 2, 3, 4, 5, 6, 7],
+        [0, 1, 2, 3, 4, 5, 6, 7], // FIXME send from backend instead
       gameState.playerName,
       0x0000ff,
       () => {
@@ -66,7 +65,7 @@ export default class GameScene extends Phaser.Scene {
     const otherPlayersCard = this.cardMechanics.createCard(
       300,
       300,
-        [0, 1, 2, 3, 4, 5, 6, 7],
+        [0, 1, 2, 3, 4, 5, 6, 7], // FIXME send from backend instead
       "violette",
       0x7f00ff,
       () => {}
@@ -142,12 +141,4 @@ export default class GameScene extends Phaser.Scene {
           console.error("Error fetching images:", error);
         });
   }
-
-  // fetchGameState() {
-  //   fetch(`${api.host()}/game-state/}`)
-  //       .then(response => response.json())
-  //       .then(data => {
-  //         this.gameState.updateState(data)
-  //       })
-  // }
 }
