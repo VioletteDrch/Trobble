@@ -8,6 +8,7 @@ class Lobby(TypedDict):
     host_id: str
     players: Dict[str, str]
     private: bool
+    started: bool
 
 class GetLobbyResponse(TypedDict):
     lobby_code: str
