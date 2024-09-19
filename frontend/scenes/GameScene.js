@@ -5,13 +5,11 @@ import {
 } from "../public/src/resources/resource-puller";
 import { gameRules, gameState, sizes } from "../config/gameConfig";
 import api from "../config/serverConfig.js";
-import GameState from "./GameState.js";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
     super("scene-game");
     this.cardMechanics = new CardMechanics(this);
-    this.gameState = new GameState();
   }
 
   preload() {
