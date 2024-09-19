@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 from .lobby_types import *
 
 class LobbyRepository:
@@ -15,10 +15,10 @@ class LobbyRepository:
         if lobby_code in self._lobbies:
             del self._lobbies[lobby_code]
 
-    def get_all_public_lobbies(self) -> Dict[str, Lobby]:
-        return {
-            code: lobby
+    def get_all_public_lobbies(self) -> List[Dict[str, Any]]:
+        return [
+            {**lobby, 'lobby_code': code}
             for code, lobby in self._lobbies.items()
             if not lobby['started'] and not lobby['private']
-        }
+        ]
 
