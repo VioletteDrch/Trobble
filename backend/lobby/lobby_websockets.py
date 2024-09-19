@@ -1,10 +1,9 @@
 import asyncio
 import json
-from typing_extensions import Any
+from typing_extensions import Any, Dict
 from websockets.asyncio.connection import Connection
 from websockets.asyncio.server import serve, broadcast
 from websockets.typing import Origin
-from lobby_repository import *
 
 # TODO will need to handle concurrent access in case multiple players join at the same time
 lobby_connections : Dict[str, Dict[str, Connection]] = dict()
