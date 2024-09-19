@@ -124,10 +124,12 @@ export default class GameScene extends Phaser.Scene {
   }
 
   fetchImages(){
+    const apiBaseUrl = `${api.host()}/images/`;
     fetch(`${api.host()}/images-list`)
         .then(response => response.json())
         .then(data => {
-          data.forEach((url, index) => {
+          data.forEach((image, index) => {
+            const url = `${apiBaseUrl}${image}`;
             console.log(url)
             const key = `image_${index}`;
             this.load.image(key, url);

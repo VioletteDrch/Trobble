@@ -1,7 +1,7 @@
 from pathlib import Path
 from os import listdir
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_from_directory
 from backend.game_logic.game_state_elements import GameStateManager
 import os
 
@@ -13,12 +13,12 @@ IMAGES_FOLDER = backend_dir.joinpath('images').joinpath('processed')
 
 @game_logic_bp.route('/images-list', methods=['GET'])
 def get_images_urls():
-    images_list = listdir(IMAGES_FOLDER)
-    urls = [
-        f'{str(IMAGES_FOLDER)}/{i}'
-        for i in images_list
-    ]
-    return urls
+    return jsonify(listdir(IMAGES_FOLDER))
+
+
+@game_logic_bp.route('/images/<path:filename>')
+def serve_image(filename):
+    return send_from_directory(IMAGES_FOLDER, filename)
 
 
 # @game_logic_bp.route('/game-state', methods=['GET'])  # temp until the websocket server is up and running
