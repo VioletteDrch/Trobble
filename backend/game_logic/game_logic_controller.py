@@ -19,3 +19,12 @@ def get_images_urls():
         for i in images_list
     ]
     return urls
+
+
+@game_logic_bp.route('/game-state', methods=['GET'])  # temp until the websocket server is up and running
+def get_game_state():
+    current_state = {
+        'middleCard': game_state_manager.get_middle_card_compo(),
+        'players': game_state_manager.game_state.players_cards_ids,
+    }
+    return jsonify(current_state)
