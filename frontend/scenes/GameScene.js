@@ -39,6 +39,14 @@ export default class GameScene extends Phaser.Scene {
 
   update() {}
 
+  updateMiddleCard() {
+
+  }
+
+  updatePlayersCard() {
+
+  }
+
   createPlayerCard() {
     this.cardMechanics.createCard(
       150,
