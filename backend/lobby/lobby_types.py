@@ -10,6 +10,9 @@ class Lobby(TypedDict):
     private: bool
     started: bool
 
+class LobbyWithCode(Lobby):
+    lobby_code: str
+
 class GetLobbyResponse(TypedDict):
     lobby_code: str
     host: str

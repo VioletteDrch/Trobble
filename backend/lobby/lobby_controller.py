@@ -3,7 +3,7 @@ from typing import Dict, Tuple, Optional, List
 import uuid
 import random
 import string
-from .lobby_types import CreateLobbyResponse, JoinLobbyResponse, GetLobbyResponse, Lobby
+from .lobby_types import CreateLobbyResponse, JoinLobbyResponse, GetLobbyResponse, Lobby, LobbyWithCode
 from .lobby_repository import LobbyRepository
 
 lobby_bp = Blueprint('lobby', __name__)
@@ -78,7 +78,12 @@ def get_lobby(lobby_code: str) -> Tuple[GetLobbyResponse, int]:
     return jsonify(lobby), 200
 
 @lobby_bp.route('/lobbies', methods=['GET'])
-def get_all_public_lobbies() -> Tuple[List[Lobby], int]:
-    public_lobbies: List[Lobby] = lobby_repository.get_all_public_lobbies()
-    return jsonify(public_lobbies), 200
-
+def get_all_public_lobbies() -> Tuple[List[LobbyWithCode], int]:
+    public_lobbies = lobby_repository.get_all_public_lobbies()
+    
+    mapped_lobbies: LobbyWithCode = [
+        {**lobby, 'lobby_code': code}
+        for code, lobby in public_lobbies.items()
+    ]
+    
+    return jsonify(mapped_lobbies), 200
