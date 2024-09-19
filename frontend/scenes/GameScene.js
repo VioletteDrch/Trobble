@@ -40,8 +40,6 @@ export default class GameScene extends Phaser.Scene {
     this.simulateOtherPlayerScoring();
   }
 
-  update() {}
-
   updateMiddleCard() {
 
   }
@@ -142,11 +140,11 @@ export default class GameScene extends Phaser.Scene {
         });
   }
 
-  fetchGameState() {
-    fetch(`${api.host()}/game-state/}`)
-        .then(response => response.json())
-        .then(data => {
-          this.gameState.updateState(data)
-        })
-  }
+  // fetchGameState() {
+  //   fetch(`${api.host()}/game-state/}`)
+  //       .then(response => response.json())
+  //       .then(data => {
+  //         this.gameState.updateState(data)
+  //       })
+  // }
 }
