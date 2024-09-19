@@ -6,15 +6,17 @@ import {
 } from "../public/src/resources/resource-puller";
 import { gameRules, gameState, sizes } from "../config/gameConfig";
 import api from "../config/serverConfig.js";
+import GameState from "./GameState.js";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
     super("scene-game");
+    this.cardMechanics = new CardMechanics(this);
+    this.gameState = new GameState();
   }
 
-  cardMechanics = new CardMechanics(this);
-
   preload() {
+    this.fetchGameState(); // endpoint until websocket server is up and running
     this.fetchImages();
     retrieveSoundEffects().forEach((sound) => {
       this.load.audio(sound.name, sound.url);
@@ -138,5 +140,13 @@ export default class GameScene extends Phaser.Scene {
         .catch(error => {
           console.error("Error fetching images:", error);
         });
+  }
+
+  fetchGameState() {
+    fetch(`${api.host()}/game-state/}`)
+        .then(response => response.json())
+        .then(data => {
+          this.gameState.updateState(data)
+        })
   }
 }
