@@ -4,7 +4,6 @@ from typing import Dict
 
 sock = Sock()
 
-# Dictionary to hold player connections for each lobby
 lobby_connections: Dict[str, Dict[str, object]] = dict()
 
 @sock.route('/ws')
@@ -41,10 +40,6 @@ def websocket_handler(ws):
 
         while True:
             message = ws.receive()
-            if not message:
-                break
-            event = json.loads(message)
-            handle_player_message(ws, event, lobby_code, player_id)
 
     except Exception as e:
         print(f"Error: {e}")
