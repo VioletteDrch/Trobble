@@ -101,7 +101,14 @@ export default class JoinLobbyScene extends Phaser.Scene {
         }
         return response.json();
       })
-      .then(() => {
+      .then((data) => {
+        const socket = new WebSocket("ws://localhost:5000/ws");
+        console.log(data)
+
+        socket.addEventListener("open", (event) => {
+          socket.send(`{\"type\": \"init\", \"lobby_code\": \"${lobbyCode}\", \"player_id\": \"${data.user_id}\"}`);
+        });
+
         this.scene.start("lobby-scene", { playerName, lobbyCode, isHost: false });
       })
       .catch(error => {

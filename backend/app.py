@@ -1,15 +1,13 @@
 from flask import Flask
 from flask_cors import CORS
 import os
-import asyncio
-from threading import Thread
-
-from numpy import False_
 from lobby.lobby_controller import lobby_bp
-from lobby.lobby_websockets import socket_serve
+from lobby.lobby_websockets import sock  # Import the Sock instance from lobby_websockets
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for cross-origin requests
+
+sock.init_app(app)
 
 IMAGES_FOLDER = 'images'
 RAW_FOLDER = os.path.join(IMAGES_FOLDER, 'raw')
@@ -23,17 +21,6 @@ app.register_blueprint(lobby_bp)
 os.makedirs(RAW_FOLDER, exist_ok=True)
 os.makedirs(PROCESSED_FOLDER, exist_ok=True)
 
-async def start_flask():
-    print("Starting the flask server")
-    app.run(debug=False, host="0.0.0.0")
-    return 1
-
-async def start_servers():
-    tasks = list()
-    if not (app.debug or os.environ.get('FLASK_ENV') == 'development') or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
-        tasks.append(asyncio.create_task(socket_serve()))
-    tasks.append(asyncio.create_task(start_flask()))
-    await asyncio.gather(*tasks)
-
 if __name__ == '__main__':
-    asyncio.run(start_servers())
+    app.run(debug=False, host="0.0.0.0")
+

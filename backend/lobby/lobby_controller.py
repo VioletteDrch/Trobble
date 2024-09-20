@@ -64,7 +64,7 @@ def join_lobby(lobby_code: str) -> Tuple[JoinLobbyResponse, int]:
     user_id: str = str(uuid.uuid4())
     lobby['players'][user_id] = user_name
 
-    return jsonify({"message": "Joined lobby successfully"}), 200
+    return jsonify({"message": "Joined lobby successfully", "user_id": user_id}), 200
 
 @lobby_bp.route('/lobbies/<lobby_code>', methods=['GET'])
 def get_lobby(lobby_code: str) -> Tuple[GetLobbyResponse, int]:

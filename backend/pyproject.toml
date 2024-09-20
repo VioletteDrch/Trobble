@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "flask-cors>=5.0.0",
+    "flask-sock>=0.7.0",
     "flask>=3.0.3",
     "opencv-python>=4.10.0.84",
     "typing-extensions>=4.12.2",
