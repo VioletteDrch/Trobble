@@ -61,9 +61,6 @@ async def socket_handler(websocket):
     await add_player_to_lobby(player_id, lobby_code, websocket)
 
 async def socket_serve():
+    print("Starting the socket server")
     async with serve(socket_handler, "localhost", 1234):
         await asyncio.get_running_loop().create_future()
-
-if __name__ == "__main__":
-    print("Running the socket server")
-    asyncio.run(socket_serve())
