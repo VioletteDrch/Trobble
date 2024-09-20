@@ -12,7 +12,7 @@ backend_dir = Path(__file__).resolve().parent.parent
 IMAGES_FOLDER = backend_dir.joinpath('images').joinpath('processed')
 
 
-@game_logic_bp.route('/images-list', methods=['GET'])
+@game_logic_bp.route('/images', methods=['GET'])
 def get_images():
     image_files = listdir(IMAGES_FOLDER)
     np.random.shuffle(image_files)  # return in random order
