@@ -1,6 +1,10 @@
-from flask import Flask
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
+import uuid
+import random
+import string
+from face_extractor.face_extractor import extract_face
 from lobby.lobby_controller import lobby_bp
 from lobby.lobby_websockets import sock
 
