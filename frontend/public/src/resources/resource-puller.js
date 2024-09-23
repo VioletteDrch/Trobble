@@ -1,32 +1,3 @@
-export function retrieveImages() {
-  return [
-    {
-      name: "ayoub",
-      url: "assets/card_images/ayoub.png",
-    },
-    {
-      name: "andre",
-      url: "assets/card_images/andre.png",
-    },
-    {
-      name: "amaury",
-      url: "assets/card_images/amaury.png",
-    },
-    {
-      name: "andreas",
-      url: "assets/card_images/andreas.png",
-    },
-    {
-      name: "violette",
-      url: "assets/card_images/violette.png",
-    },
-    {
-      name: "jonty",
-      url: "assets/card_images/jonty.png",
-    },
-  ];
-}
-
 export function getImagePositions() {
   return [
     {

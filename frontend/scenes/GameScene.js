@@ -1,22 +1,20 @@
 import Phaser from "phaser";
 import { CardMechanics } from "../public/src/cards/card-mechanics";
 import {
-  retrieveImages,
   retrieveSoundEffects,
 } from "../public/src/resources/resource-puller";
 import { gameRules, gameState, sizes } from "../config/gameConfig";
+import api from "../config/serverConfig.js";
+import ErrorMessage from "../components/ErrorMessage.js";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
     super("scene-game");
+    this.cardMechanics = new CardMechanics(this);
   }
 
-  cardMechanics = new CardMechanics(this);
-
   preload() {
-    retrieveImages().forEach((image) => {
-      this.load.image(image.name, image.url);
-    });
+    this.fetchImages();
     retrieveSoundEffects().forEach((sound) => {
       this.load.audio(sound.name, sound.url);
     });
@@ -28,6 +26,8 @@ export default class GameScene extends Phaser.Scene {
     const pile = this.cardMechanics.createCard(
       gameRules.pilePosition.x,
       gameRules.pilePosition.y,
+      // imageComb
+        [0, 1, 2, 3, 4, 5, 6, 7], // FIXME send from backend instead
       "pile",
       0xfff00,
       () => {}
@@ -37,14 +37,27 @@ export default class GameScene extends Phaser.Scene {
     this.events.on("anotherPlayerScored", this.putOtherPlayersCardOnPile, this);
     this.events.on("gameEnd", this.gameEnd, this);
     this.simulateOtherPlayerScoring();
+    this.errorMessage = new ErrorMessage(
+        this,
+        this.scale.width / 2,
+        40,
+        this.scale.width * 0.9,
+    );
   }
 
-  update() {}
+  updateMiddleCard() {
+
+  }
+
+  updatePlayersCard() {
+
+  }
 
   createPlayerCard() {
     this.cardMechanics.createCard(
       150,
       370,
+        [0, 1, 2, 3, 4, 5, 6, 7], // FIXME send from backend instead
       gameState.playerName,
       0x0000ff,
       () => {
@@ -57,6 +70,7 @@ export default class GameScene extends Phaser.Scene {
     const otherPlayersCard = this.cardMechanics.createCard(
       300,
       300,
+        [0, 1, 2, 3, 4, 5, 6, 7], // FIXME send from backend instead
       "violette",
       0x7f00ff,
       () => {}
@@ -114,5 +128,23 @@ export default class GameScene extends Phaser.Scene {
 
   isGameActive() {
     return gameState.pileSize <= gameRules.totalAmountOfCards;
+  }
+
+  fetchImages(){
+    const apiBaseUrl = `${api.host()}/images/`;
+    fetch(`${api.host()}/images`)
+        .then(response => response.json())
+        .then(data => {
+          data.forEach((image, index) => {
+            const url = `${apiBaseUrl}${image}`;
+            const key = `image_${index}`;
+            console.log(key)
+            this.load.image(key, url);
+          });
+        })
+        .catch(error => {
+          console.error("Error fetching images:", error);
+          this.errorMessage.show(error.message || "Error fetching images");
+        });
   }
 }

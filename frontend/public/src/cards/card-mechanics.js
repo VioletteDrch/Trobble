@@ -1,5 +1,4 @@
 import {
-  retrieveImages,
   getImagePositions,
   getImageAngles,
 } from "../resources/resource-puller";
@@ -13,27 +12,6 @@ export class CardMechanics {
 
   getRandomPosition(list) {
     return Math.floor(Math.random() * list.length);
-  }
-
-  createImage(id, x, y, card, onScoring, images) {
-    const imagePosition = this.getRandomPosition(images);
-    const image = this.scene.add.image(x, y, images[imagePosition].name);
-    images.splice(imagePosition, 1);
-    let randomSize = Math.floor(Math.random() * 21 + 25);
-    image.setDisplaySize(randomSize, randomSize);
-    const angles = getImageAngles();
-    const anglePosition = this.getRandomPosition(angles);
-    image.setAngle(angles[anglePosition]);
-    image.id = id;
-    image.setInteractive();
-    image.on("pointerdown", () => {
-      if (this.matches(image)) {
-        gameState.activeAnimations = this.score(card);
-        onScoring();
-      }
-    });
-    card.add(image);
-    return image;
   }
 
   matches(image) {
@@ -118,18 +96,46 @@ export class CardMechanics {
     return [highlight, nameText, sound];
   }
 
-  createCard(x, y, playerName, playerColor, onScoring) {
+  createImage(imageId, x, y, card, onScoring) {
+    // get image key from id and add it to the scene
+    const imageKey= `image_${imageId}`
+    const image = this.scene.add.image(x, y, imageKey)
+    image.id = imageId
+
+    // randomize layout
+    let randomSize = Math.floor(Math.random() * 21 + 25);
+    image.setDisplaySize(randomSize, randomSize);
+    const angles = getImageAngles();
+    const anglePosition = this.getRandomPosition(angles);
+    image.setAngle(angles[anglePosition]);
+
+    // bind player interactions to the image
+    image.setInteractive();
+    image.on("pointerdown", () => {
+      if (this.matches(image)) {
+        gameState.activeAnimations = this.score(card);
+        onScoring();
+      }
+    });
+
+    // add to the card and return
+    card.add(image);
+    return image;
+  }
+
+  createCard(x, y, imageCombination, playerName, playerColor, onScoring){
     const card = this.createContainerWithCircle(x, y);
     card.playerName = playerName;
     card.playerColor = playerColor;
+
     const imagePositions = getImagePositions();
-    const images = retrieveImages();
-    for (let i = 1; i < this.totalImagesPerCard; i++) {
+    for (let i = 0; i < this.totalImagesPerCard; i++) {
+      let imageId = imageCombination[i]
       const positionIndex = this.getRandomPosition(imagePositions);
-      const position = imagePositions[positionIndex];
-      this.createImage(i, position.x, position.y, card, onScoring, images);
-      imagePositions.splice(positionIndex, 1);
+      const position = imagePositions.splice(positionIndex, 1)[0];
+      this.createImage(imageId, position.x, position.y, card, onScoring);
     }
+
     return card;
   }
 
