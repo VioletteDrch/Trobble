@@ -148,6 +148,7 @@ export class CardMechanics {
         playerColor,
         onScoring
     );
+    this.score(middleCard)
     return middleCard;
   }
 

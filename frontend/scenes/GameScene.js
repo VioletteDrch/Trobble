@@ -14,35 +14,44 @@ export default class GameScene extends Phaser.Scene {
   }
 
   preload() {
-    this.fetchImages();
     retrieveSoundEffects().forEach((sound) => {
       this.load.audio(sound.name, sound.url);
     });
     this.load.image("bg", "/assets/background.jpg");
+    this.fetchImages()
+        .then(() => {
+          this.load.start();
+        })
+        .catch(error => {
+      console.error("Error fetching images:", error);
+      this.errorMessage.show(error.message || "Error fetching images");
+    });
   }
 
   create() {
-    this.add.image(0, 0, "bg").setOrigin(0, 0).setScale(0.5);
-    this.cardMechanics.createCard( // first middle card
-        gameRules.pilePosition.x,
-        gameRules.pilePosition.y,
-        // imageComb
-        [0, 1, 2, 3, 4, 5, 6, 7], // FIXME send from backend instead
-        "pile",
-        0xfff00,
-        () => {}
-    );
-    this.setPlayersCard();
-    this.createVictorySign();
-    this.events.on("anotherPlayerScored", this.setMiddleCard, this);
-    this.events.on("gameEnd", this.gameEnd, this);
-    this.simulateOtherPlayerScoring();
-    this.errorMessage = new ErrorMessage(
-        this,
-        this.scale.width / 2,
-        40,
-        this.scale.width * 0.9,
-    );
+    this.load.once("complete", () => {
+      this.add.image(0, 0, "bg").setOrigin(0, 0).setScale(0.5);
+      this.cardMechanics.createCard( // first middle card
+          gameRules.pilePosition.x,
+          gameRules.pilePosition.y,
+          // imageComb
+          [0, 1, 2, 3, 4, 5, 6, 7], // FIXME send from backend instead
+          "pile",
+          0xfff00,
+          () => {}
+      );
+      this.setPlayersCard();
+      this.createVictorySign();
+      this.events.on("anotherPlayerScored", this.setMiddleCard, this);
+      this.events.on("gameEnd", this.gameEnd, this);
+      this.simulateOtherPlayerScoring();
+      this.errorMessage = new ErrorMessage(
+          this,
+          this.scale.width / 2,
+          40,
+          this.scale.width * 0.9,
+      );
+    });
   }
 
   setPlayersCard() {
@@ -57,7 +66,6 @@ export default class GameScene extends Phaser.Scene {
     const otherPlayersCard = this.cardMechanics.updateMiddleCard(
             [0, 1, 2, 3, 4, 5, 6, 7], "violette", 0x7f00ff, () => {}
         );
-    this.cardMechanics.score(otherPlayersCard);
   }
 
   simulateOtherPlayerScoring() {
@@ -114,7 +122,8 @@ export default class GameScene extends Phaser.Scene {
 
   fetchImages(){
     const apiBaseUrl = `${api.host()}/images/`;
-    fetch(`${api.host()}/images`)
+
+    return fetch(`${api.host()}/images`)
         .then(response => response.json())
         .then(data => {
           data.forEach((image, index) => {
@@ -124,9 +133,5 @@ export default class GameScene extends Phaser.Scene {
             this.load.image(key, url);
           });
         })
-        .catch(error => {
-          console.error("Error fetching images:", error);
-          this.errorMessage.show(error.message || "Error fetching images");
-        });
   }
 }
