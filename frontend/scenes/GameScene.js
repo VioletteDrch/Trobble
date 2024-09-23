@@ -5,6 +5,7 @@ import {
 } from "../public/src/resources/resource-puller";
 import { gameRules, gameState, sizes } from "../config/gameConfig";
 import api from "../config/serverConfig.js";
+import ErrorMessage from "../components/ErrorMessage.js";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -36,6 +37,12 @@ export default class GameScene extends Phaser.Scene {
     this.events.on("anotherPlayerScored", this.putOtherPlayersCardOnPile, this);
     this.events.on("gameEnd", this.gameEnd, this);
     this.simulateOtherPlayerScoring();
+    this.errorMessage = new ErrorMessage(
+        this,
+        this.scale.width / 2,
+        40,
+        this.scale.width * 0.9,
+    );
   }
 
   updateMiddleCard() {
@@ -125,7 +132,7 @@ export default class GameScene extends Phaser.Scene {
 
   fetchImages(){
     const apiBaseUrl = `${api.host()}/images/`;
-    fetch(`${api.host()}/images-list`)
+    fetch(`${api.host()}/images`)
         .then(response => response.json())
         .then(data => {
           data.forEach((image, index) => {
@@ -137,6 +144,7 @@ export default class GameScene extends Phaser.Scene {
         })
         .catch(error => {
           console.error("Error fetching images:", error);
+          this.errorMessage.show(error.message || "Error fetching images");
         });
   }
 }
