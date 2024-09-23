@@ -10,6 +10,12 @@ export const gameState = {
   activeAnimations: [],
 };
 
+export const playerInfo = {
+    id: 0,
+    name: "andre",
+    color: 0x0000ff
+}
+
 export const gameRules = {
   totalAmountOfCards: 10,
   pilePosition: { x: 150, y: 130 },

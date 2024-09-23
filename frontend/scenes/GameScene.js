@@ -23,18 +23,18 @@ export default class GameScene extends Phaser.Scene {
 
   create() {
     this.add.image(0, 0, "bg").setOrigin(0, 0).setScale(0.5);
-    const pile = this.cardMechanics.createCard(
-      gameRules.pilePosition.x,
-      gameRules.pilePosition.y,
-      // imageComb
+    this.cardMechanics.createCard( // first middle card
+        gameRules.pilePosition.x,
+        gameRules.pilePosition.y,
+        // imageComb
         [0, 1, 2, 3, 4, 5, 6, 7], // FIXME send from backend instead
-      "pile",
-      0xfff00,
-      () => {}
+        "pile",
+        0xfff00,
+        () => {}
     );
-    this.createPlayerCard();
+    this.setPlayersCard();
     this.createVictorySign();
-    this.events.on("anotherPlayerScored", this.putOtherPlayersCardOnPile, this);
+    this.events.on("anotherPlayerScored", this.setMiddleCard, this);
     this.events.on("gameEnd", this.gameEnd, this);
     this.simulateOtherPlayerScoring();
     this.errorMessage = new ErrorMessage(
@@ -45,36 +45,18 @@ export default class GameScene extends Phaser.Scene {
     );
   }
 
-  updateMiddleCard() {
-
+  setPlayersCard() {
+    // FIXME fetch imageCombination from GameState
+    this.cardMechanics.updatePlayersCard([0, 1, 2, 3, 4, 5, 6, 7], () => {
+      this.setPlayersCard();
+    });
   }
 
-  updatePlayersCard() {
-
-  }
-
-  createPlayerCard() {
-    this.cardMechanics.createCard(
-      150,
-      370,
-        [0, 1, 2, 3, 4, 5, 6, 7], // FIXME send from backend instead
-      gameState.playerName,
-      0x0000ff,
-      () => {
-        this.createPlayerCard();
-      }
-    );
-  }
-
-  putOtherPlayersCardOnPile() {
-    const otherPlayersCard = this.cardMechanics.createCard(
-      300,
-      300,
-        [0, 1, 2, 3, 4, 5, 6, 7], // FIXME send from backend instead
-      "violette",
-      0x7f00ff,
-      () => {}
-    );
+  setMiddleCard() {
+    // FIXME fetch imageCombination from GameState
+    const otherPlayersCard = this.cardMechanics.updateMiddleCard(
+            [0, 1, 2, 3, 4, 5, 6, 7], "violette", 0x7f00ff, () => {}
+        );
     this.cardMechanics.score(otherPlayersCard);
   }
 

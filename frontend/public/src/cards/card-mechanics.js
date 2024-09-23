@@ -2,7 +2,7 @@ import {
   getImagePositions,
   getImageAngles,
 } from "../resources/resource-puller";
-import { gameRules, gameState, sizes } from "../../../config/gameConfig";
+import {gameRules, gameState, playerInfo, sizes} from "../../../config/gameConfig";
 
 export class CardMechanics {
   constructor(scene) {
@@ -137,6 +137,29 @@ export class CardMechanics {
     }
 
     return card;
+  }
+
+  updateMiddleCard(imageCombination, playerName, playerColor, onScoring) {
+    const middleCard = this.createCard(
+        300,
+        300,
+        imageCombination,
+        playerName,
+        playerColor,
+        onScoring
+    );
+    return middleCard;
+  }
+
+  updatePlayersCard(imageCombination, onScoring) {
+    return this.createCard(
+        150,
+        370,
+        imageCombination, // FIXME send from backend instead
+        playerInfo.name,
+        playerInfo.color,
+        onScoring
+    );
   }
 
   createContainerWithCircle(x, y) {
