@@ -41,24 +41,25 @@ class GameStateManager:
         self.cards = cards
 
         # Select first card as middle card
-        middle_card = 0
-        cards.pop(middle_card)
+        middle_card_id = 0
+        cards.pop(middle_card_id)
 
         # Deal the rest of the cards evenly to the players
         nb_cards_per_player = len(cards) // nb_players
-        players_cards = {}
+        players_cards_ids = {}
 
         first_card_id = 1  # first card of the deck has been used as middle card
         for player_id in range(nb_players):
-            first_card_id += nb_cards_per_player * player_id
             last_card_id = first_card_id + nb_cards_per_player
 
-            players_cards[player_id] = [
+            players_cards_ids[player_id] = [
                 i for i in range(first_card_id, last_card_id)
             ]
 
+            first_card_id += nb_cards_per_player
+
         # Initialize game state
-        self.game_state = GameState(middle_card, players_cards)
+        self.game_state = GameState(middle_card_id, players_cards_ids)
 
     def __str__(self):
         game_state_str = (f"Current game state\n------------------\n"
@@ -109,12 +110,18 @@ class GameStateManager:
             new_middle_card = self.game_state.players_cards_ids[move.player_id].pop(0)  # remove top card from player's pile
             self.game_state.set_middle_card(new_middle_card)  # set it as the new middle card
 
+    def get_game_state(self):
+        return {
+            "middle_card": self.game_state.middle_card_id,
+            "players_cards": self.game_state.players_cards_ids
+        }
+
 
 if __name__ == '__main__':
     n = 3
     p = 7
     game_on = GameStateManager(n, p)
-    print(game_on.__str__())
+    # print(game_on.__str__())
     game_on.resolve_game_state(PlayerMove(
         0, 0
     ))
