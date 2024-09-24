@@ -117,6 +117,17 @@ class GameStateManager:
         }
 
 
+# Singleton instance
+game_state_manager = None
+
+
+def get_game_state_manager(nb_players: int, prime_number: int = 7):  # prime_number might be set as a variable in future iterations if we allow users to choose how many symbols there are on each card (# symbolsPerCard = (primeNumber + 1))
+    global game_state_manager
+    if game_state_manager is None:
+        game_state_manager = GameStateManager(nb_players, prime_number)
+    return game_state_manager
+
+
 if __name__ == '__main__':
     n = 3
     p = 7
