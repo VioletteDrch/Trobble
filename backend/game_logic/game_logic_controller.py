@@ -24,6 +24,12 @@ def serve_image(filename):
     return send_from_directory(IMAGES_FOLDER, filename)
 
 
+@game_logic_bp.route('/cards', methods=['GET'])
+def get_cards():
+    manager = GameStateManager(3, 7)
+    return jsonify(manager.cards)
+
+
 @game_logic_bp.route('/game_state', methods=['GET'])
 def get_game_state():
     manager = GameStateManager(3, 7)
