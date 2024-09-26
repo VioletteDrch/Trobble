@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { api } from "../config/serverConfig.js";
 import ErrorMessage from "../components/ErrorMessage.js";
+import axios from 'axios';
 
 export default class LobbyScene extends Phaser.Scene {
   constructor() {
@@ -36,7 +37,7 @@ export default class LobbyScene extends Phaser.Scene {
         "startGame",
         this.scale.height - 50,
         () => {
-          this.scene.start("scene-game");
+          this.startGame();
         },
       );
     } else {
@@ -94,6 +95,17 @@ export default class LobbyScene extends Phaser.Scene {
       .setText(playerNames.join("\n"))
       .setOrigin(0.5, 0)
       .setY(180);
+  }
+
+  startGame() {
+    // axios.post(`${api.host()}/start`, {
+    //   nbPlayers: this.playersList.length,
+    // }).then((response) => {
+    //   console.log(response.data);
+    // }).catch((error) => {
+    //     console.error("Error starting the game:", error.response ? error.response.data : error.message);
+    //   });
+    this.scene.start("scene-game");
   }
 
   fetchPlayersList() {
