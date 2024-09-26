@@ -3,14 +3,23 @@ from typing import Dict, Tuple, Optional, List
 import uuid
 import random
 import string
-from .lobby_types import CreateLobbyResponse, JoinLobbyResponse, GetLobbyResponse, Lobby, LobbyWithCode
-from .lobby_repository import LobbyRepository
+
+from backend.lobby.lobby_service import LobbyService
+from backend.lobby.lobby_types import CreateLobbyResponse, JoinLobbyResponse, GetLobbyResponse, Lobby, LobbyWithCode
 
 lobby_bp = Blueprint('lobby', __name__)
-lobby_repository: LobbyRepository = LobbyRepository()
+
+lobby_service: Optional[LobbyService] = None
+
+
+def init_lobby_controller(service):
+    global lobby_service
+    lobby_service = service
+
 
 def generate_lobby_code(length: int = 6) -> str:
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+
 
 @lobby_bp.route('/lobbies', methods=['POST'])
 def create_lobby() -> Tuple[CreateLobbyResponse, int]:
@@ -24,7 +33,7 @@ def create_lobby() -> Tuple[CreateLobbyResponse, int]:
     lobby_code: str = generate_lobby_code()
 
     # Very unlikely to be a clash but just in case
-    while lobby_repository.get_lobby(lobby_code):
+    while lobby_service.get_lobby(lobby_code):
         lobby_code = generate_lobby_code()
 
     host_id: str = str(uuid.uuid4())
@@ -36,9 +45,10 @@ def create_lobby() -> Tuple[CreateLobbyResponse, int]:
         "started": False
     }
 
-    lobby_repository.add_lobby(lobby_code, new_lobby)
+    lobby_service.add_lobby(lobby_code, new_lobby)
 
     return jsonify({"message": "Lobby created successfully", "lobby_code": lobby_code}), 201
+
 
 @lobby_bp.route('/lobbies/<lobby_code>/join', methods=['POST'])
 def join_lobby(lobby_code: str) -> Tuple[JoinLobbyResponse, int]:
@@ -48,7 +58,7 @@ def join_lobby(lobby_code: str) -> Tuple[JoinLobbyResponse, int]:
     if not lobby_code or not user_name:
         return jsonify({"error": "Lobby code and username are required"}), 400
 
-    lobby: Optional[Lobby] = lobby_repository.get_lobby(lobby_code)
+    lobby: Optional[Lobby] = lobby_service.get_lobby(lobby_code)
     if not lobby:
         return jsonify({"error": "Lobby not found"}), 404
 
@@ -66,20 +76,22 @@ def join_lobby(lobby_code: str) -> Tuple[JoinLobbyResponse, int]:
 
     return jsonify({"message": "Joined lobby successfully"}), 200
 
+
 @lobby_bp.route('/lobbies/<lobby_code>', methods=['GET'])
 def get_lobby(lobby_code: str) -> Tuple[GetLobbyResponse, int]:
     if not lobby_code:
         return jsonify({"error": "Lobby code is required"}), 400
 
-    lobby: Optional[Lobby] = lobby_repository.get_lobby(lobby_code)
+    lobby: Optional[Lobby] = lobby_service.get_lobby(lobby_code)
     if not lobby:
         return jsonify({"error": "Lobby not found"}), 404
 
     return jsonify(lobby), 200
 
+
 @lobby_bp.route('/lobbies', methods=['GET'])
 def get_all_public_lobbies() -> Tuple[List[LobbyWithCode], int]:
-    public_lobbies = lobby_repository.get_all_public_lobbies()
+    public_lobbies = lobby_service.get_all_public_lobbies()
 
     mapped_lobbies: LobbyWithCode = [
         {**lobby, 'lobby_code': code}

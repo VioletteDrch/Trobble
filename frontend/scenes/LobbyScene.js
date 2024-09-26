@@ -99,7 +99,7 @@ export default class LobbyScene extends Phaser.Scene {
 
   startGame() {
     axios.post(`${api.host()}/start`, {
-      nbPlayers: this.playersList.length,
+      lobbyCode: this.lobbyCode,
     }).catch((error) => {
         console.error("Error starting the game:", error);
         this.errorMessage.show(error.message || "Failed to start game");
@@ -112,7 +112,7 @@ export default class LobbyScene extends Phaser.Scene {
       .then((response) => {
         if (!response.ok) {
           return response.json().then((data) => {
-            throw new Error(data.error || "Failed to fetch player list");
+            throw new Error(data.error || "Failed to fetch players list");
           });
         }
         return response.json();
@@ -121,8 +121,8 @@ export default class LobbyScene extends Phaser.Scene {
         this.updatePlayersList(data.players, data.host_id);
       })
       .catch((error) => {
-        console.error("Error fetching player list:", error);
-        this.errorMessage.show(error.message || "Failed to fetch player list");
+        console.error("Error fetching players list:", error);
+        this.errorMessage.show(error.message || "Failed to fetch players list");
       });
   }
 }

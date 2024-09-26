@@ -1,6 +1,7 @@
 from typing import Dict, Optional
 from .lobby_types import *
 
+
 class LobbyRepository:
     def __init__(self):
         self._lobbies: Dict[str, Lobby] = {}
@@ -21,4 +22,3 @@ class LobbyRepository:
             for code, lobby in self._lobbies.items()
             if not lobby['started'] and not lobby['private']
         }
-
