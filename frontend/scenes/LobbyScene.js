@@ -98,13 +98,12 @@ export default class LobbyScene extends Phaser.Scene {
   }
 
   startGame() {
-    // axios.post(`${api.host()}/start`, {
-    //   nbPlayers: this.playersList.length,
-    // }).then((response) => {
-    //   console.log(response.data);
-    // }).catch((error) => {
-    //     console.error("Error starting the game:", error.response ? error.response.data : error.message);
-    //   });
+    axios.post(`${api.host()}/start`, {
+      nbPlayers: this.playersList.length,
+    }).catch((error) => {
+        console.error("Error starting the game:", error);
+        this.errorMessage.show(error.message || "Failed to start game");
+      });
     this.scene.start("scene-game");
   }
 
