@@ -15,7 +15,6 @@ def get_cards(p):
                 cards[1 + p + i * p + k].append(1 + p + j * p + (i * j - k) % p)
     return cards
 
-
 if __name__ == "__main__":
     prime_number = 7
     cards = get_cards(prime_number)

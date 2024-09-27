@@ -1,4 +1,5 @@
 from typing import Dict, List, Optional, TypedDict
+from dataclasses import dataclass
 
 class Player(TypedDict):
     user_id: str
@@ -30,3 +31,13 @@ class JoinLobbyResponse(TypedDict):
 
 class ChangeNameResponse(TypedDict):
     message: str
+
+@dataclass
+class PlayerScoredResponse:
+    player_id: str
+    middle_card: list #TODO update once the card object is not only array but the dict with id + url Dict[int, str]
+
+@dataclass
+class GameInitResponse:
+    cards: list #TODO change to List[Dict[]] once that has been implemented
+    middle_card: list #TODO change to Dict[] once that has been implemented
