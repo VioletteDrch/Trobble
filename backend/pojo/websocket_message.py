@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 class WebsocketMessage:
 
-    def __init__(self, method: str, player_id: str, game_id: str, payload: Any) -> None:
+    def __init__(self, method: str, player_id: int, game_id: str, payload: Any = {}) -> None:
         self.method = method
         self.player_id = player_id
         self.game_id = game_id

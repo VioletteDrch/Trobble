@@ -1,7 +1,7 @@
-from typing import Dict, Any
+from typing import Dict, List
 
 import numpy as np
-from cards_creator import get_cards
+from .cards_creator import get_cards
 
 
 # Game state describes two things:
@@ -21,12 +21,13 @@ from cards_creator import get_cards
 
 class GameState:
     # Contains game status info in cards ids, aka their position in the deck.
-    def __init__(self, middle_card: list, players_cards: Dict[int, list], game_id: str, host_id: int):
+    def __init__(self, middle_card: list, players_cards: Dict[int, List[list]], game_id: str, host_id: int):
         self.middle_card = middle_card
         self.players_cards = players_cards
         self.active = False
         self.game_id = game_id
         self.host_id = host_id
+        self.winner: int = 0
 
 class PlayerMove:
     def __init__(self, player_id: int, clicked_symbol: int, middle_card_id: int):
@@ -34,12 +35,9 @@ class PlayerMove:
         self.symbol_id = clicked_symbol
         self.middle_card_id = middle_card_id
 
-def player_move_from_dict(s: Dict[str, Any]) -> PlayerMove:
-    return PlayerMove(**s)
-
 
 class GameStateManager:
-    def __init__(self, nb_players: int, host_id : int, prime_number: int = 7, game_id: str = ''):
+    def __init__(self, player_ids: list, host_id : int, prime_number: int = 7, game_id: str = ''):
         # Create cards deck
         cards = get_cards(prime_number)
         np.random.shuffle(cards)
@@ -47,19 +45,18 @@ class GameStateManager:
 
         # Select first card as middle card
         middle_card = cards.pop(0)
-
+        
+        nb_players = len(player_ids)
         # Deal the rest of the cards evenly to the players
         nb_cards_per_player = len(cards) // nb_players
         players_cards = {}
 
         first_card_id = 1  # first card of the deck has been used as middle card
-        for player_id in range(nb_players):
-            first_card_id += nb_cards_per_player * player_id
+        for player_id in player_ids:
             last_card_id = first_card_id + nb_cards_per_player
+            players_cards[player_id] = cards[first_card_id:last_card_id]
+            first_card_id += nb_cards_per_player
 
-            players_cards[player_id] = [
-                i for i in range(first_card_id, last_card_id)
-            ]
 
         # Initialize game state
         self.game_state = GameState(middle_card, players_cards, game_id, host_id)
@@ -76,19 +73,18 @@ class GameStateManager:
                                f"First card: {player_cards[0]}")
         return game_state_str
 
-    def get_card_composition(self, card_id: int):
-        return self.cards[card_id]
-
     def get_top_card_compo_for_player(self, player_id):
-        return self.get_card_composition(self.game_state.players_cards[player_id][0])
+        return self.game_state.players_cards[player_id][0]
 
     def valid_player_match(self, move: PlayerMove) -> bool:
         # check the symbol exists both in the player's card and the middle card
         player_top_card_compo = self.get_top_card_compo_for_player(move.player_id)
+        print(player_top_card_compo)
+        print(self.game_state.middle_card)
 
         if move.symbol_id not in player_top_card_compo:
             # symbol should have not been clickable FIXME
-            print("Invalid move")
+            print('symbol not present')
             return False
 
         if move.symbol_id not in self.game_state.middle_card:
@@ -99,18 +95,21 @@ class GameStateManager:
         print("Valid move")
         return True
 
-    def resolve_game_state(self, move: PlayerMove):
+    def resolve_game_state(self, move: PlayerMove) -> bool:
         # If the player's move is valid, update game state
         if self.valid_player_match(move):
+            #resolve if game is still going or it should end, set active = False and set self.winner
             new_middle_card = self.game_state.players_cards[move.player_id].pop(0)  # remove top card from player's pile
             self.game_state.middle_card = new_middle_card  # set it as the new middle card
+            return True
+        else:
+            return False
 
 
 if __name__ == '__main__':
-    n = 3
     p = 7
     id = 'game'
-    game_on = GameStateManager(n, p, 1, id)
+    game_on = GameStateManager([1,2,3], p, 1, id)
     print(game_on.__str__())
     game_on.resolve_game_state(PlayerMove(
         0, 0, 0

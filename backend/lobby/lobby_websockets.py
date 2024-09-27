@@ -8,13 +8,14 @@ from lobby_repository import *
 import sys
 sys.path.append('../')
 from pojo.websocket_message import websocket_message_from_dict, WebsocketMessage
-from game_logic.GameState import GameStateManager, PlayerMove, player_move_from_dict
+from game_logic.GameState import GameStateManager, PlayerMove
 
 game_connections : Dict[str, Dict[int, Connection]] = dict()
 games : Dict[str, GameStateManager] = dict()
 
 async def init_game(player_id, game_id):
-    game_state_manager = GameStateManager(len(game_connections[game_id]), player_id)
+    player_connections = game_connections[game_id]
+    game_state_manager = GameStateManager([*player_connections], player_id)
     games[game_id] = game_state_manager
     connections = game_connections.get(game_id, dict())
     game_state = game_state_manager.game_state
@@ -27,24 +28,33 @@ async def add_player_to_lobby(player_id, lobby_code, websocket):
     # todo check that lobby is "joinable", e.g. the player is allowed to join AND game has not started
     connections = game_connections.get(lobby_code, dict())
     if player_id in connections:
-        await websocket.send("Player already connected")
+        message = 'already connected'
     else:
         broadcast(connections.values(), f"Player {player_id} entered the game")
         connections[player_id] = websocket
         game_connections[lobby_code] = connections
         print(f"Added player {player_id} to lobby {lobby_code}")
-        resp = "Hey there, received your message"
-        await websocket.send(resp)
+        message = 'ok'
+    resp = JoinLobbyResponse(message)
+    await websocket.send(json.dumps(resp.__dict__))
 
-async def handle_score(player_connection, player_move: PlayerMove, game_id, player_id):
-    game: GameStateManager = games.get(game_id, GameStateManager(0, 0, 0, ''))
-    if (game.game_state.active and game.valid_player_match(player_move)):
+async def handle_score(player_connection, player_move: PlayerMove, game_id):
+    game: GameStateManager = games[game_id]
+    if (game.game_state.active and game.resolve_game_state(player_move)):
         connections = game_connections.get(game_id, dict())
-        response = PlayerScoredResponse(player_id, game.game_state.middle_card)
+        response = PlayerScoredResponse(player_move.player_id, game.game_state.middle_card)
         broadcast(connections.values(), json.dumps(response.__dict__))
+        if (not game.game_state.active):
+            await end_game(game_id)
     else:
         await player_connection.send("Invalid point") #TODO parse proper JSON error response
 
+async def end_game(game_id):
+    game: GameStateManager = games[game_id]
+    connections = game_connections[game_id]
+    broadcast(connections.values(), json.dumps(GameEndResponse(game.game_state.winner).__dict__))
+    for connection in connections.values():
+        await connection.close()
 
 async def socket_handler(websocket):
     while True:
@@ -55,8 +65,9 @@ async def socket_handler(websocket):
         elif (websocket_message.method == 'init'):
             await init_game(websocket_message.player_id, websocket_message.game_id)
         elif (websocket_message.method == 'score'):
-            player_move = player_move_from_dict(websocket_message.payload)
-            await handle_score(websocket, player_move, websocket_message.game_id, websocket_message.player_id)
+            player_move_req = player_move_from_dict(websocket_message.payload)
+            player_move = PlayerMove(websocket_message.player_id, player_move_req.symbol_id, player_move_req.middle_card_id)
+            await handle_score(websocket, player_move, websocket_message.game_id)
 
     # Comment the following lines for testing
     # if lobby_code not in lobbies:

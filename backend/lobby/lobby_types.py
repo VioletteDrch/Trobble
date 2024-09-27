@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, TypedDict
+from typing import Dict, List, Any, TypedDict
 from dataclasses import dataclass
 
 class Player(TypedDict):
@@ -26,18 +26,31 @@ class CreateLobbyResponse(TypedDict):
     message: str
     lobby_code: str
 
-class JoinLobbyResponse(TypedDict):
-    message: str
-
 class ChangeNameResponse(TypedDict):
     message: str
 
 @dataclass
+class JoinLobbyResponse:
+    message: str
+
+@dataclass
 class PlayerScoredResponse:
-    player_id: str
-    middle_card: list #TODO update once the card object is not only array but the dict with id + url Dict[int, str]
+    player_id: int
+    new_middle_card: list #TODO update once the card object is not only array but the dict with id + url Dict[int, str]
 
 @dataclass
 class GameInitResponse:
     cards: list #TODO change to List[Dict[]] once that has been implemented
     middle_card: list #TODO change to Dict[] once that has been implemented
+
+@dataclass
+class GameEndResponse:
+    winner: int #change to proper player object once we have it, with the name, color, etc. 
+
+@dataclass
+class PlayerMoveRequest:
+    symbol_id: int
+    middle_card_id: int
+
+def player_move_from_dict(s: Dict[str, Any]) -> PlayerMoveRequest:
+    return PlayerMoveRequest(**s)
