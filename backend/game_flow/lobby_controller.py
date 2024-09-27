@@ -3,14 +3,16 @@ from typing import Dict, Tuple, Optional, List
 import uuid
 import random
 import string
-from .game_pojos import CreateLobbyResponse, JoinLobbyResponse, GetLobbyResponse, Lobby, LobbyWithCode
-from .lobby_repository import LobbyRepository
+from game_pojos import CreateLobbyResponse, LobbyResponse, GetLobbyResponse, Lobby, LobbyWithCode
+from lobby_repository import LobbyRepository
 
 lobby_bp = Blueprint('lobby', __name__)
 lobby_repository: LobbyRepository = LobbyRepository()
 
+
 def generate_lobby_code(length: int = 6) -> str:
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+
 
 @lobby_bp.route('/lobbies', methods=['POST'])
 def create_lobby() -> Tuple[CreateLobbyResponse, int]:
@@ -40,8 +42,9 @@ def create_lobby() -> Tuple[CreateLobbyResponse, int]:
 
     return jsonify({"message": "Lobby created successfully", "lobby_code": lobby_code}), 201
 
+
 @lobby_bp.route('/lobbies/<lobby_code>/join', methods=['POST'])
-def join_lobby(lobby_code: str) -> Tuple[JoinLobbyResponse, int]:
+def join_lobby(lobby_code: str) -> Tuple[LobbyResponse, int]:
     data: Dict[str, Optional[str]] = request.get_json()
     user_name: Optional[str] = data.get('username')
 
@@ -66,6 +69,7 @@ def join_lobby(lobby_code: str) -> Tuple[JoinLobbyResponse, int]:
 
     return jsonify({"message": "Joined lobby successfully"}), 200
 
+
 @lobby_bp.route('/lobbies/<lobby_code>', methods=['GET'])
 def get_lobby(lobby_code: str) -> Tuple[GetLobbyResponse, int]:
     if not lobby_code:
@@ -76,6 +80,7 @@ def get_lobby(lobby_code: str) -> Tuple[GetLobbyResponse, int]:
         return jsonify({"error": "Lobby not found"}), 404
 
     return jsonify(lobby), 200
+
 
 @lobby_bp.route('/lobbies', methods=['GET'])
 def get_all_public_lobbies() -> Tuple[List[LobbyWithCode], int]:

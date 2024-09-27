@@ -39,7 +39,7 @@ class PlayerMove:
 
 
 class GameStateManager:
-    def __init__(self, player_ids: list, host_id : int, prime_number: int = 7, game_id: str = ''):
+    def __init__(self, player_ids: list, host_id: int, prime_number: int = 7, game_id: str = ''):
         # Create cards deck
         cards = get_cards(prime_number)
         np.random.shuffle(cards)
