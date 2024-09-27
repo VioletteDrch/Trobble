@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from face_extractor.face_extractor_controller import face_extractor_bp
-from lobby.lobby_controller import lobby_bp
+from game_flow.lobby_controller import lobby_bp
 from game_logic.game_logic_controller import game_logic_bp
 
 app = Flask(__name__)

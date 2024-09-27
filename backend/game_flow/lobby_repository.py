@@ -1,5 +1,5 @@
 from typing import Dict, Optional
-from .lobby_types import *
+from game_pojos import *
 
 class LobbyRepository:
     def __init__(self):
