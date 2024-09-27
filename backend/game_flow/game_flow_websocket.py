@@ -34,7 +34,6 @@ async def init_game(player_id, game_id):
     game_state.active = True
 
 async def join_game(player_id, game_id, websocket):
-    # todo check that lobby is "joinable", e.g. the player is allowed to join AND game has not started
     connections = game_connections.get(game_id, dict())
     if player_id in connections:
         message = 'already connected'
@@ -81,12 +80,6 @@ async def socket_handler(websocket):
             player_move_req = player_move_from_dict(websocket_message.payload)
             player_move = PlayerMove(websocket_message.player_id, player_move_req.symbol_id, player_move_req.middle_card_id)
             await handle_score(websocket, player_move, websocket_message.game_id)
-
-    # Comment the following lines for testing
-    # if lobby_code not in lobbies:
-    #     await websocket.send("Unknown lobby")
-    #     await websocket.close()
-    #     return
 
 async def socket_serve():
     async with serve(socket_handler, "localhost", 1234):

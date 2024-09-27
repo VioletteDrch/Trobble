@@ -8,7 +8,9 @@ from cards_creator import get_cards
 #   - which card is in the middle
 #   - which cards are in each user pile
 #   - if game is active
-#   - current point
+#   - game id
+#   - host id (player)
+#   - who is the winner
 #
 # A card has an id (rank in the deck) and a composition (which symbols are disposed on the card)
 # To update the game state and interact with players, cards are manipulated with their ids only for ease
