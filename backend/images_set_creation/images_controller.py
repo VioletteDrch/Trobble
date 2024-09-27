@@ -8,9 +8,9 @@ from backend.images_set_creation.face_extractor import extract_face
 
 images_bp = Blueprint('images', __name__)
 
-# Define path to images inputs and outputs
+# Define path to static inputs and outputs
 backend_dir = Path(__file__).resolve().parent.parent
-IMAGES_FOLDER = backend_dir.joinpath('images')
+IMAGES_FOLDER = backend_dir.joinpath('static/images')
 RAW_FOLDER = IMAGES_FOLDER.joinpath('raw')
 PROCESSED_FOLDER = IMAGES_FOLDER.joinpath('processed')
 
