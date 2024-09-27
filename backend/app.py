@@ -3,7 +3,7 @@ from typing import Optional, Dict
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
-from backend.game.game_controller import game_bp
+from backend.game.game_controller import game_bp, init_game_controller
 from backend.game_logic.game_state_elements import GameStateManager
 from backend.lobby.lobby_repository import LobbyRepository
 from backend.lobby.lobby_service import LobbyService
@@ -21,9 +21,10 @@ app.register_blueprint(game_bp, url_prefix='/game')
 lobby_repository: LobbyRepository = LobbyRepository()
 lobby_service: LobbyService = LobbyService(lobby_repository)
 
-init_lobby_controller(lobby_service)
-
 game_state_managers_by_lobby_code: Dict[str, GameStateManager] = {}
+
+init_lobby_controller(lobby_service)
+init_game_controller(game_state_managers_by_lobby_code)
 
 
 @app.route('/start', methods=['POST'])
@@ -34,7 +35,7 @@ def start_game():
     lobby: Optional[Lobby] = lobby_service.get_lobby(lobby_code)
 
     if lobby is not None:
-        game_state_managers_by_lobby_code[lobby_code] = get_game_state_manager(nb_players=len(lobby["players"].keys()))
+        game_state_managers_by_lobby_code[lobby_code] = GameStateManager(nb_players=len(lobby["players"].keys()))
         return jsonify({"message": "Game started"})
 
     return jsonify({"error": "Lobby not found"}), 404
