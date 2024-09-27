@@ -7,11 +7,20 @@ from websockets.typing import Origin
 from lobby_repository import *
 import sys
 sys.path.append('../')
-from pojo.websocket_message import websocket_message_from_dict, WebsocketMessage
 from game_logic.GameState import GameStateManager, PlayerMove
 
 game_connections : Dict[str, Dict[int, Connection]] = dict()
 games : Dict[str, GameStateManager] = dict()
+
+async def create_game(game_id, player_id, connection):
+    if (game_id in game_connections):
+        message = 'game already exists'
+    else:
+        game_connections[game_id] = dict()
+        game_connections[game_id][player_id] = connection
+        message = 'game created'
+    await connection.send(json.dumps(LobbyResponse(message).__dict__))
+
 
 async def init_game(player_id, game_id):
     player_connections = game_connections[game_id]
@@ -24,18 +33,18 @@ async def init_game(player_id, game_id):
         await connections[player].send(json.dumps(game_init_response.__dict__))
     game_state.active = True
 
-async def add_player_to_lobby(player_id, lobby_code, websocket):
+async def join_game(player_id, game_id, websocket):
     # todo check that lobby is "joinable", e.g. the player is allowed to join AND game has not started
-    connections = game_connections.get(lobby_code, dict())
+    connections = game_connections.get(game_id, dict())
     if player_id in connections:
         message = 'already connected'
     else:
         broadcast(connections.values(), f"Player {player_id} entered the game")
         connections[player_id] = websocket
-        game_connections[lobby_code] = connections
-        print(f"Added player {player_id} to lobby {lobby_code}")
+        game_connections[game_id] = connections
+        print(f"Added player {player_id} to lobby {game_id}")
         message = 'ok'
-    resp = JoinLobbyResponse(message)
+    resp = LobbyResponse(message)
     await websocket.send(json.dumps(resp.__dict__))
 
 async def handle_score(player_connection, player_move: PlayerMove, game_id):
@@ -55,13 +64,17 @@ async def end_game(game_id):
     broadcast(connections.values(), json.dumps(GameEndResponse(game.game_state.winner).__dict__))
     for connection in connections.values():
         await connection.close()
+    del game_connections[game_id]
+    del games[game_id]
 
 async def socket_handler(websocket):
     while True:
         message = await websocket.recv()
         websocket_message: WebsocketMessage = websocket_message_from_dict(json.loads(message))
-        if (websocket_message.method == 'join'):
-            await add_player_to_lobby(websocket_message.player_id, websocket_message.game_id, websocket)
+        if (websocket_message.method == 'create'):
+            await create_game(websocket_message.game_id, websocket_message.player_id, websocket)
+        elif (websocket_message.method == 'join'):
+            await join_game(websocket_message.player_id, websocket_message.game_id, websocket)
         elif (websocket_message.method == 'init'):
             await init_game(websocket_message.player_id, websocket_message.game_id)
         elif (websocket_message.method == 'score'):
@@ -76,7 +89,6 @@ async def socket_handler(websocket):
     #     return
 
 async def socket_serve():
-    game_connections["123"] = dict()
     async with serve(socket_handler, "localhost", 1234):
         await asyncio.get_running_loop().create_future()
 
