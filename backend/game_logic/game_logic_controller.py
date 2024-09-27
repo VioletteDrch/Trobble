@@ -3,8 +3,6 @@ from os import listdir
 import numpy as np
 
 from flask import Blueprint, request, jsonify, send_from_directory
-from game_state_elements import GameStateManager
-import os
 
 game_logic_bp = Blueprint('game-logic', __name__)
 
