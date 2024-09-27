@@ -1,11 +1,12 @@
 from pathlib import Path
 
-from flask import Blueprint, request, jsonify
+import numpy as np
+from flask import Blueprint, request, jsonify, send_from_directory
 import os
 
-from backend.face_extractor.face_extractor import extract_face
+from backend.images_set_creation.face_extractor import extract_face
 
-face_extractor_bp = Blueprint('extractor', __name__)
+images_bp = Blueprint('images', __name__)
 
 # Define path to images inputs and outputs
 backend_dir = Path(__file__).resolve().parent.parent
@@ -19,7 +20,7 @@ os.makedirs(RAW_FOLDER, exist_ok=True)
 os.makedirs(PROCESSED_FOLDER, exist_ok=True)
 
 
-@face_extractor_bp.route('/upload', methods=['POST'])
+@images_bp.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
@@ -39,3 +40,15 @@ def upload_file():
         extract_face(file_path, output_path)
 
         return jsonify({"message": "File uploaded successfully", "file_path": file_path}), 200
+
+
+@images_bp.route('', methods=['GET'])
+def get_images():
+    image_files = os.listdir(PROCESSED_FOLDER)
+    np.random.shuffle(image_files)  # return in random order
+    return jsonify(image_files)
+
+
+@images_bp.route('/<filename>', methods=['GET'])
+def serve_image(filename):
+    return send_from_directory(PROCESSED_FOLDER, filename)

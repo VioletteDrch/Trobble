@@ -6,7 +6,7 @@
 # virtual env
 venv/
 
-#generated images in face_extractor
+#generated images in images_set_creation
 backend/face-extractor/*.png
 backend/face-extractor/*.jpg
 backend/face-extractor/*.jpeg

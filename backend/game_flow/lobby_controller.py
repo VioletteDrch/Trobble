@@ -3,8 +3,8 @@ from typing import Dict, Tuple, Optional, List
 import uuid
 import random
 import string
-from game_pojos import CreateLobbyResponse, LobbyResponse, GetLobbyResponse, Lobby, LobbyWithCode
-from lobby_repository import LobbyRepository
+from backend.game_flow.game_pojos import CreateLobbyResponse, LobbyResponse, GetLobbyResponse, Lobby, LobbyWithCode
+from backend.game_flow.lobby_repository import LobbyRepository
 
 lobby_bp = Blueprint('lobby', __name__)
 lobby_repository: LobbyRepository = LobbyRepository()
