@@ -1,7 +1,7 @@
 from typing import Dict, List
 
 import numpy as np
-from cards_creator import get_cards
+from .cards_creator import get_cards
 
 
 # Game state describes two things:

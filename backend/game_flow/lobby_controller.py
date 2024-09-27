@@ -3,7 +3,7 @@ from typing import Dict, Tuple, Optional, List
 import uuid
 import random
 import string
-from .lobby_types import CreateLobbyResponse, JoinLobbyResponse, GetLobbyResponse, Lobby, LobbyWithCode
+from .game_pojos import CreateLobbyResponse, JoinLobbyResponse, GetLobbyResponse, Lobby, LobbyWithCode
 from .lobby_repository import LobbyRepository
 
 lobby_bp = Blueprint('lobby', __name__)
