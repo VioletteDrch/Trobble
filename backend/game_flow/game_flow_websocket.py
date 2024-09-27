@@ -3,7 +3,7 @@ import json
 from websockets.asyncio.connection import Connection
 from websockets.asyncio.server import serve, broadcast
 from lobby_repository import *
-from backend.game_logic.game_state_elements import GameStateManager, PlayerMove
+from backend.game_flow.game_state_elements import GameStateManager, PlayerMove
 
 player_connections_by_game_id: Dict[str, Dict[int, Connection]] = {}
 games: Dict[str, GameStateManager] = {}
