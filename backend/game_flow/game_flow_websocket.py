@@ -34,7 +34,9 @@ async def init_game(player_id, game_id):
     game_state.active = True
 
 async def join_game(player_id, game_id, websocket):
-    connections = game_connections.get(game_id, dict())
+    if (game_id not in game_connections):
+        message = 'game does not exist'
+    connections = game_connections[game_id]
     if player_id in connections:
         message = 'already connected'
     else:
