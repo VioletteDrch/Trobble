@@ -34,17 +34,18 @@ async def init_game(player_id, game_id):
     game_state.active = True
 
 async def join_game(player_id, game_id, websocket):
-    if (game_id not in game_connections):
+    if (not game_id in game_connections):
         message = 'game does not exist'
-    connections = game_connections[game_id]
-    if player_id in connections:
-        message = 'already connected'
     else:
-        broadcast(connections.values(), f"Player {player_id} entered the game")
-        connections[player_id] = websocket
-        game_connections[game_id] = connections
-        print(f"Added player {player_id} to lobby {game_id}")
-        message = 'ok'
+        connections = game_connections[game_id]
+        if player_id in connections:
+            message = 'already connected'
+        else:
+            broadcast(connections.values(), f"Player {player_id} entered the game")
+            connections[player_id] = websocket
+            game_connections[game_id] = connections
+            print(f"Added player {player_id} to lobby {game_id}")
+            message = 'ok'
     resp = LobbyResponse(message)
     await websocket.send(json.dumps(resp.__dict__))
 
