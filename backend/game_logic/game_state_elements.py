@@ -1,7 +1,7 @@
 from typing import Dict, List
 
 import numpy as np
-from .cards_creator import get_cards
+from cards_creator import get_cards
 
 
 # Game state describes two things:
@@ -56,7 +56,6 @@ class GameStateManager:
             last_card_id = first_card_id + nb_cards_per_player
             players_cards[player_id] = cards[first_card_id:last_card_id]
             first_card_id += nb_cards_per_player
-
 
         # Initialize game state
         self.game_state = GameState(middle_card, players_cards, game_id, host_id)

@@ -1,13 +1,13 @@
 import asyncio
 import json
-from typing_extensions import Any
+from typing_extensions import Any, Dict
 from websockets.asyncio.connection import Connection
 from websockets.asyncio.server import serve, broadcast
 from websockets.typing import Origin
 from lobby_repository import *
 import sys
 sys.path.append('../')
-from game_logic.GameState import GameStateManager, PlayerMove
+from game_logic.game_state_elements import GameStateManager, PlayerMove
 
 game_connections : Dict[str, Dict[int, Connection]] = dict()
 games : Dict[str, GameStateManager] = dict()

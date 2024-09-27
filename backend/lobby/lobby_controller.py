@@ -80,10 +80,10 @@ def get_lobby(lobby_code: str) -> Tuple[GetLobbyResponse, int]:
 @lobby_bp.route('/lobbies', methods=['GET'])
 def get_all_public_lobbies() -> Tuple[List[LobbyWithCode], int]:
     public_lobbies = lobby_repository.get_all_public_lobbies()
-    
+
     mapped_lobbies: LobbyWithCode = [
         {**lobby, 'lobby_code': code}
         for code, lobby in public_lobbies.items()
     ]
-    
+
     return jsonify(mapped_lobbies), 200

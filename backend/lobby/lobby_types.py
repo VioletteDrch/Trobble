@@ -1,10 +1,6 @@
 from typing import Dict, List, Any, TypedDict
 from dataclasses import dataclass
 
-class Player(TypedDict):
-    user_id: str
-    username: str
-
 class Lobby(TypedDict):
     host_id: str
     players: Dict[str, str]
@@ -17,7 +13,7 @@ class LobbyWithCode(Lobby):
 class GetLobbyResponse(TypedDict):
     lobby_code: str
     host: str
-    players: List[Player]
+    players: Dict[str, str]
 
 class ErrorResponse(TypedDict):
     error: str
