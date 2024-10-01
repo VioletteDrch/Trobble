@@ -4,7 +4,7 @@ import numpy as np
 from flask import Blueprint, request, jsonify, send_from_directory
 import os
 
-from backend.images_set_creation.face_extractor import extract_face
+from images_set_creation.face_extractor import extract_face
 
 images_bp = Blueprint('images', __name__)
 

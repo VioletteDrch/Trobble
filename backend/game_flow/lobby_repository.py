@@ -1,5 +1,5 @@
 from typing import Dict, Optional
-from backend.game_flow.game_pojos import *
+from game_flow.game_pojos import *
 
 class LobbyRepository:
     def __init__(self):
@@ -21,4 +21,3 @@ class LobbyRepository:
             for code, lobby in self._lobbies.items()
             if not lobby['started'] and not lobby['private']
         }
-
