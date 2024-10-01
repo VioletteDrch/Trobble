@@ -28,6 +28,11 @@ class CreateLobbyResponse(TypedDict):
     lobby_code: str
 
 
+class JoinLobbyResponse(TypedDict):
+    user_id: str
+    message: str
+
+
 class ChangeNameResponse(TypedDict):
     message: str
 

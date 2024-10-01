@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { api } from "../config/serverConfig.js";
+import {api, ws} from "../config/serverConfig.js";
 import ErrorMessage from "../components/ErrorMessage.js";
 
 export default class JoinLobbyScene extends Phaser.Scene {
@@ -101,8 +101,15 @@ export default class JoinLobbyScene extends Phaser.Scene {
         }
         return response.json();
       })
-      .then(() => {
-        this.scene.start("lobby-scene", { playerName, lobbyCode, isHost: false });
+      .then((data) => {
+          const socket = new WebSocket(`${ws.host()}/ws`);
+          console.log(data)
+
+          socket.addEventListener("open", (event) => {
+            socket.send(`{\"type\": \"init\", \"lobby_code\": \"${lobbyCode}\", \"player_id\": \"${data.user_id}\"}`);
+          });
+
+          this.scene.start("lobby-scene", { playerName, lobbyCode, isHost: false });
       })
       .catch(error => {
         this.errorMessage.show(error.message || "Failed to join lobby");

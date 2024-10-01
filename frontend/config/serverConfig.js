@@ -4,4 +4,10 @@ export const api = {
     }
 }
 
+export const ws = {
+    host: () => {
+        return `ws://${window?.location.hostname || 'localhost'}:5000`
+    }
+}
+
 export default api;
