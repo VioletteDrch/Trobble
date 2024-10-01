@@ -1,71 +1,28 @@
-import asyncio
 import json
-from websockets.asyncio.connection import Connection
-from websockets.asyncio.server import serve, broadcast
-from lobby_repository import *
+from backend.game_flow.lobby_repository import *
 from backend.game_flow.game_state_elements import GameStateManager, PlayerMove
-from flask_sock import Sock
+from flask_sock import Sock, WebSocket
 from typing import Dict
 
-player_connections_by_game_id: Dict[str, Dict[int, Connection]] = {}
+player_connections_by_game_id: Dict[str, Dict[int, WebSocket]] = {}
 games: Dict[str, GameStateManager] = {}
 
 sock = Sock()
 
 
-@sock.route('/ws')
-def websocket_handler(ws):
-    print("New WebSocket connection established")
-
-    try:
-        message = ws.receive()
-        event = json.loads(message)
-        if event['type'] != "init":
-            ws.send(json.dumps({"error": "Invalid init message"}))
-            ws.close()
-            return
-
-        lobby_code = event.get('lobby_code')
-        player_id = event.get('player_id')
-
-        if not lobby_code or not player_id:
-            ws.send(json.dumps({"error": "Lobby code and player ID are required"}))
-            ws.close()
-            return
-
-        if lobby_code not in player_connections_by_game_id.keys():
-            player_connections_by_game_id[lobby_code] = {}
-
-        if player_id in player_connections_by_game_id[lobby_code]:
-            ws.send(json.dumps({"error": f"Player {player_id} is already in the lobby"}))
-            ws.close()
-            return
-
-        player_connections_by_game_id[lobby_code][player_id] = ws
-        ws.send(json.dumps({"message": f"Player {player_id} joined lobby {lobby_code}"}))
-        print(f"Player {player_id} joined lobby {lobby_code}")
-
-        while True:
-            message = ws.receive()
-
-    except Exception as e:
-        print(f"Error: {e}")
-    finally:
-        print(f"Player {player_id} disconnected from lobby {lobby_code}")
-        ws.close()
-
-
-async def create_game(game_id, player_id, connection):
+async def create_game(game_id, player_id, ws):
+    print('Creating game')
     if game_id in player_connections_by_game_id:
         message = 'game already exists'
     else:
         player_connections_by_game_id[game_id] = {}
-        player_connections_by_game_id[game_id][player_id] = connection
+        player_connections_by_game_id[game_id][player_id] = ws
         message = 'game created'
-    await connection.send(json.dumps(LobbyResponse(message).__dict__))
+    await ws.send(json.dumps(LobbyResponse(message).__dict__))
 
 
-async def init_game(host_id, game_id):
+async def init_game(game_id, host_id):
+    print('Initiating game')
     player_connections = player_connections_by_game_id[game_id]
     game_state_manager = GameStateManager([*player_connections], host_id)
     games[game_id] = game_state_manager
@@ -78,7 +35,8 @@ async def init_game(host_id, game_id):
     game_state.active = True
 
 
-async def join_game(player_id, game_id, websocket):
+async def join_game(game_id, player_id, ws):
+    print('Player joining game')
     if game_id not in player_connections_by_game_id:
         message = 'game does not exist'
     else:
@@ -86,60 +44,66 @@ async def join_game(player_id, game_id, websocket):
         if player_id in connections:
             message = 'already connected'
         else:
-            broadcast(connections.values(), f"Player {player_id} entered the game")
-            connections[player_id] = websocket
+            await broadcast(game_id, f"Player {player_id} entered the game")
+            connections[player_id] = ws
             player_connections_by_game_id[game_id] = connections
             print(f"Added player {player_id} to lobby {game_id}")
             message = 'ok'
     resp = LobbyResponse(message)
-    await websocket.send(json.dumps(resp.__dict__))
+    await ws.send(json.dumps(resp.__dict__))
 
 
-async def handle_score(player_connection, player_move: PlayerMove, game_id):
+async def handle_score(ws, player_move: PlayerMove, game_id):
+    print('Handling score')
     game: GameStateManager = games[game_id]
 
     if game.game_state.active and game.resolve_game_state(player_move):
         player_connections = player_connections_by_game_id.get(game_id, {})
         response = PlayerScoredResponse(player_move.player_id, game.game_state.middle_card)
-        broadcast(player_connections.values(), json.dumps(response.__dict__))
+        await broadcast(game_id, json.dumps(response.__dict__))
         if not game.game_state.active:
             await end_game(game_id)
     else:
-        await player_connection.send("Invalid point")  # TODO parse proper JSON error response
+        await ws.send("Invalid point")  # TODO parse proper JSON error response
 
 
 async def end_game(game_id):
+    print('Ending game')
     game: GameStateManager = games[game_id]
     player_connections = player_connections_by_game_id[game_id]
-    broadcast(player_connections.values(), json.dumps(GameEndResponse(game.game_state.winner).__dict__))
+    await broadcast(game_id, json.dumps(GameEndResponse(game.game_state.winner).__dict__))
     for connection in player_connections.values():
         await connection.close()
     del player_connections_by_game_id[game_id]
     del games[game_id]
 
 
-async def socket_handler(websocket):
+async def broadcast(game_id, message):
+    connections = player_connections_by_game_id[game_id]
+    for connection in connections.values():
+        await connection.send(message)
+
+
+@sock.route('/ws')
+async def websocket_handler(ws):
     while True:
-        message = await websocket.recv()
-        websocket_message: WebsocketMessage = websocket_message_from_dict(json.loads(message))
-        if websocket_message.method == 'create':
-            await create_game(websocket_message.game_id, websocket_message.player_id, websocket)
-        elif websocket_message.method == 'join':
-            await join_game(websocket_message.player_id, websocket_message.game_id, websocket)
-        elif websocket_message.method == 'init':
-            await init_game(websocket_message.player_id, websocket_message.game_id)
-        elif websocket_message.method == 'score':
-            player_move_req = player_move_from_dict(websocket_message.payload)
-            player_move = PlayerMove(websocket_message.player_id, player_move_req.symbol_id,
-                                     player_move_req.middle_card_id)
-            await handle_score(websocket, player_move, websocket_message.game_id)
+        message = await ws.receive()
+        event = json.loads(message)
+        event_type = event['type']
+        game_id = event.get['game_id']
+        player_id = event.get['player_id']
 
+        if event_type == 'create':
+            await create_game(game_id, player_id, ws)
 
-async def socket_serve():
-    async with serve(socket_handler, "localhost", 1234):
-        await asyncio.get_running_loop().create_future()
+        elif event_type == 'join':
+            await join_game(game_id, player_id, ws)
 
+        elif event_type == 'init':
+            await init_game(game_id, player_id)
 
-if __name__ == "__main__":
-    print("Running the socket server")
-    asyncio.run(socket_serve())
+        elif event_type == 'score':
+            player_move_req = event['payload']
+            player_move = PlayerMove(player_id, player_move_req['symbol_id'],
+                                     player_move_req['middle_card_id'])
+            await handle_score(ws, player_move, game_id)
