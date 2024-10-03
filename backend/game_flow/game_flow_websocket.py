@@ -1,4 +1,3 @@
-import asyncio
 import json
 from typing import Collection
 from game_flow.lobby_repository import *
@@ -76,22 +75,23 @@ def end_game(game_id):
 
 def socket_handler(websocket):
     while True:
-        try:
-            message = websocket.receive()
-            websocket_message: WebsocketMessage = websocket_message_from_dict(json.loads(message))
-            if websocket_message.method == 'create':
-                create_game(websocket_message.game_id, websocket_message.player_id, websocket)
-            elif websocket_message.method == 'join':
-                join_game(websocket_message.player_id, websocket_message.game_id, websocket)
-            elif websocket_message.method == 'init':
-                init_game(websocket_message.player_id, websocket_message.game_id)
-            elif websocket_message.method == 'score':
+        message = websocket.receive()
+        websocket_message: WebsocketMessage = websocket_message_from_dict(json.loads(message))
+        if websocket_message.method == 'create':
+            create_game(websocket_message.game_id, websocket_message.player_id, websocket)
+        elif websocket_message.method == 'join':
+            join_game(websocket_message.player_id, websocket_message.game_id, websocket)
+        elif websocket_message.method == 'init':
+            init_game(websocket_message.player_id, websocket_message.game_id)
+        elif websocket_message.method == 'score':
+            try:
                 player_move_req = player_move_from_dict(websocket_message.payload)
+            except:
+                websocket.send(LobbyResponse("bad request"))
+            else:
                 player_move = PlayerMove(websocket_message.player_id, player_move_req.symbol_id,
-                                        player_move_req.middle_card_id)
+                                    player_move_req.middle_card_id)
                 handle_score(websocket, player_move, websocket_message.game_id)
-        finally:
-            websocket.close()
 
 
 @sock.route('/ws')
