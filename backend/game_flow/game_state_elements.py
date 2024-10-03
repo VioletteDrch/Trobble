@@ -1,7 +1,7 @@
 from typing import Dict, List
 
 import numpy as np
-from backend.cards_logic.cards_creator import get_cards
+from cards_logic.cards_creator import get_cards
 
 
 # Game state describes two things:
@@ -47,7 +47,7 @@ class GameStateManager:
 
         # Select first card as middle card
         middle_card = cards.pop(0)
-        
+
         nb_players = len(player_ids)
         # Deal the rest of the cards evenly to the players
         nb_cards_per_player = len(cards) // nb_players
