@@ -4,17 +4,20 @@ export const sizes = {
 };
 
 export const gameState = {
-  points: 0,
   pileSize: 1,
-  playerName: "andre",
   activeAnimations: [],
+  middleCard: [],
+  blocked: false,
+  gameId: "",
 };
 
 export const playerInfo = {
-    id: 0,
-    name: "andre",
-    color: 0x0000ff
-}
+  id: 0,
+  name: "andre",
+  color: 0x0000ff,
+};
+
+export const otherPlayers = [];
 
 export const gameRules = {
   totalAmountOfCards: 10,

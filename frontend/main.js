@@ -13,7 +13,7 @@ const config = {
   backgroundColor: "#FFFFC0",
   scale: {
     mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH
+    autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   canvas: gameCanvas,
   physics: {
@@ -24,7 +24,6 @@ const config = {
     },
   },
   scene: [StartScene, LobbyScene, JoinLobbyScene, GameScene],
-  // scene: [GameScene],
 };
 
 const game = new Phaser.Game(config);

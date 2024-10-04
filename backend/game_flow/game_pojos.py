@@ -26,6 +26,10 @@ class ErrorResponse(TypedDict):
 class CreateLobbyResponse(TypedDict):
     message: str
     lobby_code: str
+    
+    
+class JoinLobbyResponse(TypedDict):
+    message: str
 
 
 class ChangeNameResponse(TypedDict):
@@ -46,25 +50,34 @@ def websocket_message_from_dict(s: Dict[str, Any]) -> WebsocketMessage:
 
 
 @dataclass
-class LobbyResponse:
+class CreateGameResponse:
     message: str
+    method: str = "create"
 
+@dataclass
+class JoinGameResponse:
+    message: str
+    method: str = "join"
 
 @dataclass
 class PlayerScoredResponse:
     player_id: int
-    new_middle_card: list  # TODO update once the card object is not only array but the dict with id + url Dict[int, str]
+    new_middle_card: list
+    error: str = ""
+    method: str = "score"
 
 
 @dataclass
 class GameInitResponse:
-    cards: list  # TODO change to List[Dict[]] once that has been implemented
-    middle_card: list  # TODO change to Dict[] once that has been implemented
+    cards: list
+    middle_card: list
+    method: str = "init"
 
 
 @dataclass
 class GameEndResponse:
     winner: int  # change to proper player object once we have it, with the name, color, etc.
+    method: str = "end"
 
 
 @dataclass

@@ -16,8 +16,9 @@ def create_game(game_id, player_id, connection):
     else:
         player_connections_by_game_id[game_id] = {}
         player_connections_by_game_id[game_id][player_id] = connection
-        message = 'game created'
-    connection.send(json.dumps(LobbyResponse(message).__dict__))
+        message = 'ok'
+    print(message)
+    connection.send(json.dumps(CreateGameResponse(message).__dict__))
 
 
 def init_game(host_id, game_id):
@@ -41,12 +42,13 @@ def join_game(player_id, game_id, websocket):
         if player_id in connections:
             message = 'already connected'
         else:
-            broadcast(connections.values(), f"Player {player_id} entered the game")
+            broadcast(connections.values(), json.dumps(JoinGameResponse("Player {player_id} entered the game").__dict__))
             connections[player_id] = websocket
             player_connections_by_game_id[game_id] = connections
             print(f"Added player {player_id} to lobby {game_id}")
             message = 'ok'
-    resp = LobbyResponse(message)
+    resp = JoinGameResponse(message)
+    print(resp)
     websocket.send(json.dumps(resp.__dict__))
 
 
@@ -60,7 +62,7 @@ def handle_score(player_connection, player_move: PlayerMove, game_id):
         if not game.game_state.active:
             end_game(game_id)
     else:
-        player_connection.send("Invalid point")  # TODO parse proper JSON error response
+        player_connection.send(json.dumps(PlayerScoredResponse(0, [], "invalid point")))  # TODO parse proper JSON error response
 
 
 def end_game(game_id):
@@ -87,7 +89,7 @@ def socket_handler(websocket):
             try:
                 player_move_req = player_move_from_dict(websocket_message.payload)
             except:
-                websocket.send(LobbyResponse("bad request"))
+                websocket.send(PlayerScoredResponse(0, [], "bad request"))
             else:
                 player_move = PlayerMove(websocket_message.player_id, player_move_req.symbol_id,
                                     player_move_req.middle_card_id)
