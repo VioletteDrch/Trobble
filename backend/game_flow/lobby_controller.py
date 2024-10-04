@@ -3,7 +3,7 @@ from typing import Dict, Tuple, Optional, List
 import uuid
 import random
 import string
-from game_flow.game_pojos import CreateLobbyResponse, LobbyResponse, GetLobbyResponse, Lobby, LobbyWithCode
+from game_flow.game_pojos import CreateLobbyResponse, JoinLobbyResponse, GetLobbyResponse, Lobby, LobbyWithCode
 from game_flow.lobby_repository import LobbyRepository
 
 lobby_bp = Blueprint('lobby', __name__)
@@ -44,7 +44,7 @@ def create_lobby() -> Tuple[CreateLobbyResponse, int]:
 
 
 @lobby_bp.route('/lobbies/<lobby_code>/join', methods=['POST'])
-def join_lobby(lobby_code: str) -> Tuple[LobbyResponse, int]:
+def join_lobby(lobby_code: str) -> Tuple[JoinLobbyResponse, int]:
     data: Dict[str, Optional[str]] = request.get_json()
     user_name: Optional[str] = data.get('username')
 

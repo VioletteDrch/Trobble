@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { api } from "../config/serverConfig.js";
+import { server, buildBaseWSMessage } from "../config/serverConfig.js";
 import ErrorMessage from "../components/ErrorMessage.js";
 
 export default class LobbyScene extends Phaser.Scene {
@@ -13,8 +13,18 @@ export default class LobbyScene extends Phaser.Scene {
 
   init(data) {
     this.playerName = data.playerName;
+    this.playerId = data.playerId;
     this.lobbyCode = data.lobbyCode;
     this.isHost = data.isHost;
+    if (data.ws) {
+      //host connection, so has both already created connection and joined the game.
+      this.ws = data.ws;
+    } else {
+      this.ws = new WebSocket(server.websocket);
+      this.ws.onopen = () => {
+        this.ws.send(JSON.stringify(this.buildJoinMessage(1, data.lobbyCode)));
+      };
+    }
   }
 
   create() {
@@ -36,14 +46,19 @@ export default class LobbyScene extends Phaser.Scene {
         "startGame",
         this.scale.height - 50,
         () => {
-          this.scene.start("scene-game");
-        },
+          this.scene.start("scene-game", {
+            websocket: this.ws,
+            playerId: this.playerId,
+            gameId: this.lobbyCode,
+            isHost: true,
+          });
+        }
       );
     } else {
       this.createText(
         "Waiting for host\nto start game...",
         this.scale.height - 50,
-        "24px",
+        "24px"
       );
     }
 
@@ -51,7 +66,7 @@ export default class LobbyScene extends Phaser.Scene {
       this,
       this.scale.width / 2,
       40,
-      this.scale.width * 0.9,
+      this.scale.width * 0.9
     );
 
     this.fetchPlayersList();
@@ -97,7 +112,7 @@ export default class LobbyScene extends Phaser.Scene {
   }
 
   fetchPlayersList() {
-    fetch(`${api.host()}/lobbies/${this.lobbyCode}`)
+    fetch(`${server.api()}/lobbies/${this.lobbyCode}`)
       .then((response) => {
         if (!response.ok) {
           return response.json().then((data) => {
@@ -114,5 +129,10 @@ export default class LobbyScene extends Phaser.Scene {
         this.errorMessage.show(error.message || "Failed to fetch player list");
       });
   }
-}
 
+  buildJoinMessage(playerId, gameId) {
+    const joinMessage = buildBaseWSMessage(playerId, gameId);
+    joinMessage.method = "join";
+    return joinMessage;
+  }
+}

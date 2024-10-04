@@ -2,11 +2,17 @@ import {
   getImagePositions,
   getImageAngles,
 } from "../resources/resource-puller";
-import {gameRules, gameState, playerInfo, sizes} from "../../../config/gameConfig";
+import {
+  gameRules,
+  gameState,
+  playerInfo,
+  sizes,
+} from "../../../config/gameConfig";
 
 export class CardMechanics {
   constructor(scene) {
     this.scene = scene;
+    this.ws = scene.ws;
     this.totalImagesPerCard = 7;
   }
 
@@ -15,10 +21,12 @@ export class CardMechanics {
   }
 
   matches(image) {
-    if (image.id === 1) {
-      return this.isGameActive();
+    if (gameState.middleCard.includes(image.id)) {
+      const scoreMessage = {};
+      return this.ws.send(JSON.stringify(scoreMessage));
+    } else {
+      return false;
     }
-    return false;
   }
 
   isGameActive() {
@@ -27,12 +35,6 @@ export class CardMechanics {
 
   score(card) {
     card.setDepth(gameState.pileSize++);
-    if (card.playerName === gameState.playerName) {
-      gameState.points++;
-    }
-    if (!this.isGameActive()) {
-      this.scene.events.emit("gameEnd", card.playerName);
-    }
     return this.moveCardToPile(card, gameRules.pilePosition);
   }
 
@@ -96,11 +98,11 @@ export class CardMechanics {
     return [highlight, nameText, sound];
   }
 
-  createImage(imageId, x, y, card, onScoring) {
+  createImage(imageId, x, y, card) {
     // get image key from id and add it to the scene
-    const imageKey= `image_${imageId}`
-    const image = this.scene.add.image(x, y, imageKey)
-    image.id = imageId
+    const imageKey = `image_${imageId}`;
+    const image = this.scene.add.image(x, y, imageKey);
+    image.id = imageId;
 
     // randomize layout
     let randomSize = Math.floor(Math.random() * 21 + 25);
@@ -114,7 +116,8 @@ export class CardMechanics {
     image.on("pointerdown", () => {
       if (this.matches(image)) {
         gameState.activeAnimations = this.score(card);
-        onScoring();
+      } else {
+        blockInteractions(card);
       }
     });
 
@@ -123,43 +126,45 @@ export class CardMechanics {
     return image;
   }
 
-  createCard(x, y, imageCombination, playerName, playerColor, onScoring){
+  createCard(x, y, imageCombination, playerName, playerColor) {
     const card = this.createContainerWithCircle(x, y);
     card.playerName = playerName;
     card.playerColor = playerColor;
 
     const imagePositions = getImagePositions();
     for (let i = 0; i < this.totalImagesPerCard; i++) {
-      let imageId = imageCombination[i]
+      let imageId = imageCombination[i];
       const positionIndex = this.getRandomPosition(imagePositions);
       const position = imagePositions.splice(positionIndex, 1)[0];
-      this.createImage(imageId, position.x, position.y, card, onScoring);
+      this.createImage(imageId, position.x, position.y, card);
     }
 
     return card;
   }
 
-  updateMiddleCard(imageCombination, playerName, playerColor, onScoring) {
+  updateMiddleCardWithNewlyCreatedCard(
+    imageCombination,
+    playerName,
+    playerColor
+  ) {
     const middleCard = this.createCard(
-        300,
-        300,
-        imageCombination,
-        playerName,
-        playerColor,
-        onScoring
+      300,
+      300,
+      imageCombination,
+      playerName,
+      playerColor
     );
-    this.score(middleCard)
+    this.score(middleCard);
     return middleCard;
   }
 
-  updatePlayersCard(imageCombination, onScoring) {
+  updatePlayersCard(imageCombination) {
     return this.createCard(
-        150,
-        370,
-        imageCombination, // FIXME send from backend instead
-        playerInfo.name,
-        playerInfo.color,
-        onScoring
+      150,
+      370,
+      imageCombination,
+      playerInfo.name,
+      playerInfo.color
     );
   }
 
@@ -175,5 +180,10 @@ export class CardMechanics {
     card.add(circle);
     card.setSize(200, 200);
     return card;
+  }
+
+  blockInteractions(card) {
+    gameState.blocked = true;
+    //todo: add some graphic representation on the players card
   }
 }

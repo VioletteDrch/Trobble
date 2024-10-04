@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import api from "../config/serverConfig.js";
+import { server, buildBaseWSMessage } from "../config/serverConfig.js";
 import ErrorMessage from "../components/ErrorMessage.js";
 
 export default class StartScene extends Phaser.Scene {
@@ -64,12 +64,12 @@ export default class StartScene extends Phaser.Scene {
       this,
       this.scale.width / 2,
       this.scale.height / 2,
-      this.scale.width * 0.9,
+      this.scale.width * 0.9
     );
   }
 
   createLobby(playerName) {
-    fetch(`${api.host()}/lobbies`, {
+    fetch(`${server.api()}/lobbies`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -88,11 +88,23 @@ export default class StartScene extends Phaser.Scene {
         return response.json();
       })
       .then((data) => {
-        this.scene.start("lobby-scene", {
-          playerName,
-          lobbyCode: data.lobby_code,
-          isHost: true,
-        });
+        const ws = new WebSocket(server.websocket());
+        const playerId = 1; // todo make backend populate it and retrieve it from data
+        ws.onerror = (error) => {
+          console.log("ws error", error);
+        };
+        ws.onopen = (ev) => {
+          ws.send(
+            JSON.stringify(this.buildCreateWSMessage(playerId, data.lobby_code))
+          );
+          this.scene.start("lobby-scene", {
+            playerName,
+            playerId,
+            lobbyCode: data.lobby_code,
+            isHost: true,
+            ws: ws,
+          });
+        };
       })
       .catch((error) => {
         console.error("Error creating lobby:", error);
@@ -103,5 +115,10 @@ export default class StartScene extends Phaser.Scene {
   joinLobby(playerName) {
     this.scene.start("join-lobby-scene", { playerName });
   }
-}
 
+  buildCreateWSMessage(playerId, gameId) {
+    const message = buildBaseWSMessage(playerId, gameId);
+    message.method = "create";
+    return message;
+  }
+}
