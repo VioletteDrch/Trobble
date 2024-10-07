@@ -16,21 +16,12 @@ export default class LobbyScene extends Phaser.Scene {
     this.playerId = data.playerId;
     this.lobbyCode = data.lobbyCode;
     this.isHost = data.isHost;
-    if (data.ws) {
-      //host connection, so has both already created connection and joined the game.
-      this.ws = data.ws;
-    } else {
-      this.ws = new WebSocket(server.websocket);
-      this.ws.onopen = () => {
-        this.ws.send(JSON.stringify(this.buildJoinMessage(1, data.lobbyCode)));
-      };
-    }
-  }
+    this.hostId = data.hostId;
+    this.players = { ...data.initialPlayers };
 
-  create() {
-    this.createText(`Lobby ${this.lobbyCode}`, 50, "30px", "bold");
-    this.createText(`Welcome \n${this.playerName}!`, 100, "22px");
-    this.createText("Players:", 160, "24px", "bold");
+    this.ws = data.ws || new WebSocket(server.websocket());
+    this.ws.onopen = () => this.handleWebSocketOpen();
+    this.ws.onmessage = (event) => this.handleWebSocketMessage(event);
 
     this.playersList = this.add
       .text(this.scale.width / 2, 180, "You", {
@@ -40,42 +31,29 @@ export default class LobbyScene extends Phaser.Scene {
         wordWrap: { width: this.scale.width, useAdvancedWrap: true },
       })
       .setOrigin(0.5);
+  }
 
-    if (this.isHost) {
-      this.startButton = this.createButton(
-        "startGame",
-        this.scale.height - 50,
-        () => {
-          this.scene.start("scene-game", {
-            websocket: this.ws,
-            playerId: this.playerId,
-            gameId: this.lobbyCode,
-            isHost: true,
-          });
-        }
-      );
-    } else {
-      this.createText(
-        "Waiting for host\nto start game...",
-        this.scale.height - 50,
-        "24px"
-      );
-    }
+  create() {
+    this.createText(`Lobby ${this.lobbyCode}`, 50, "30px", "bold");
+    this.createText(`Welcome \n${this.playerName}!`, 100, "22px");
+    this.createText("Players:", 160, "24px", "bold");
+
+    this.isHost
+      ? this.createStartButton()
+      : this.createText(
+          "Waiting for host\nto start game...",
+          this.scale.height - 50,
+          "24px",
+        );
 
     this.errorMessage = new ErrorMessage(
       this,
       this.scale.width / 2,
       40,
-      this.scale.width * 0.9
+      this.scale.width * 0.9,
     );
 
-    this.fetchPlayersList();
-    this.time.addEvent({
-      delay: 1000,
-      callback: () => this.fetchPlayersList(),
-      callbackScope: this,
-      loop: true,
-    });
+    this.updatePlayersList(this.players, this.hostId);
   }
 
   createText(text, y, fontSize, fontStyle = "") {
@@ -89,8 +67,19 @@ export default class LobbyScene extends Phaser.Scene {
       .setOrigin(0.5);
   }
 
+  createStartButton() {
+    this.createButton("startGame", this.scale.height - 50, () => {
+      this.scene.start("scene-game", {
+        websocket: this.ws,
+        playerId: this.playerId,
+        gameId: this.lobbyCode,
+        isHost: true,
+      });
+    });
+  }
+
   createButton(key, y, callback) {
-    return this.add
+    this.add
       .image(this.scale.width / 2, y, key)
       .setInteractive()
       .on("pointerdown", callback)
@@ -98,41 +87,52 @@ export default class LobbyScene extends Phaser.Scene {
   }
 
   updatePlayersList(players, hostId) {
-    const playerNames = Object.entries(players).map(([id, player]) => {
-      let displayName = player === this.playerName ? "You" : player;
-      if (id === hostId) {
-        displayName += " ⭐";
-      }
-      return displayName;
-    });
+    const playerNames = Object.entries(players)
+      .map(([id, player]) => {
+        if (player) {
+          let displayName = player === this.playerName ? "You" : player;
+          if (id === hostId) {
+            displayName += " ⭐";
+          }
+          return displayName;
+        }
+        return undefined;
+      })
+      .filter((name) => name !== undefined); // Todo: there is a bug where undefined gets into the player list somehow
+
     this.playersList
       .setText(playerNames.join("\n"))
       .setOrigin(0.5, 0)
       .setY(180);
   }
 
-  fetchPlayersList() {
-    fetch(`${server.api()}/lobbies/${this.lobbyCode}`)
-      .then((response) => {
-        if (!response.ok) {
-          return response.json().then((data) => {
-            throw new Error(data.error || "Failed to fetch player list");
-          });
-        }
-        return response.json();
-      })
-      .then((data) => {
-        this.updatePlayersList(data.players, data.host_id);
-      })
-      .catch((error) => {
-        console.error("Error fetching player list:", error);
-        this.errorMessage.show(error.message || "Failed to fetch player list");
-      });
+  handlePlayerJoin(playerId, playerName) {
+    this.players[playerId] = playerName;
+    this.updatePlayersList(this.players, this.hostId);
   }
 
-  buildJoinMessage(playerId, gameId) {
-    const joinMessage = buildBaseWSMessage(playerId, gameId);
-    joinMessage.method = "join";
-    return joinMessage;
+  handlePlayerDisconnect(playerId) {
+    delete this.players[playerId];
+    this.updatePlayersList(this.players, this.hostId);
+  }
+
+  handleWebSocketOpen() {
+    this.sendMessage("join", { player_name: this.playerName });
+  }
+
+  handleWebSocketMessage(event) {
+    const message = JSON.parse(event.data);
+    if (message.method === "join") {
+      this.handlePlayerJoin(message.playerId, message.playerName);
+    } else if (message.method === "disconnect") {
+      this.handlePlayerDisconnect(message.playerId);
+    }
+  }
+  sendMessage(method, payload) {
+    const message = buildBaseWSMessage(this.playerId, this.lobbyCode);
+    message.method = method;
+    message.payload = payload;
+    this.ws.send(JSON.stringify(message));
   }
 }
+

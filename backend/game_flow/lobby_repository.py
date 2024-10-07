@@ -2,8 +2,13 @@ from typing import Dict, Optional
 from game_flow.game_pojos import *
 
 class LobbyRepository:
-    def __init__(self):
-        self._lobbies: Dict[str, Lobby] = {}
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(LobbyRepository, cls).__new__(cls)
+            cls._instance._lobbies = {}
+        return cls._instance
 
     def add_lobby(self, lobby_code: str, lobby: Lobby) -> None:
         self._lobbies[lobby_code] = lobby

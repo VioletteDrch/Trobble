@@ -89,9 +89,9 @@ export default class StartScene extends Phaser.Scene {
       })
       .then((data) => {
         const ws = new WebSocket(server.websocket());
-        const playerId = 1; // todo make backend populate it and retrieve it from data
+        const playerId = data.user_id;
         ws.onerror = (error) => {
-          console.log("ws error", error);
+          console.error("ws error", error);
         };
         ws.onopen = (ev) => {
           ws.send(
@@ -102,6 +102,8 @@ export default class StartScene extends Phaser.Scene {
             playerId,
             lobbyCode: data.lobby_code,
             isHost: true,
+            initialPlayers: data.lobby.players,
+            hostId: data.lobby.host_id,
             ws: ws,
           });
         };
