@@ -43,23 +43,21 @@ def join_game(player_id, player_name, game_id, websocket):
         if player_id in connections:
             message = 'already connected'
         else:
+            response = JoinGameResponse(
+                message=f"Player {player_name} entered the game",
+                playerId=player_id,
+                playerName=player_name
+            )
+            
             broadcast(
                 connections.values(),
-                json.dumps({
-                    "method": "join",
-                    "playerId": player_id,
-                    "playerName": player_name,
-                    "message": f"Player {player_name} entered the game"
-                })
+                json.dumps(response.__dict__)
             )
-
             connections[player_id] = websocket
             player_connections_by_game_id[game_id] = connections
             print(f"Added player {player_id} to lobby {game_id}")
-            message = 'ok'
 
-    resp = JoinGameResponse(message=message)
-    websocket.send(json.dumps(resp.__dict__))
+    websocket.send(json.dumps(response.__dict__))
 
 
 def handle_score(player_connection, player_move: PlayerMove, game_id):

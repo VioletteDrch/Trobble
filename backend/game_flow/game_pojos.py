@@ -58,9 +58,12 @@ class CreateGameResponse:
     message: str
     method: str = "create"
 
+
 @dataclass
 class JoinGameResponse:
     message: str
+    playerId: str
+    playerName: str
     method: str = "join"
 
 @dataclass
