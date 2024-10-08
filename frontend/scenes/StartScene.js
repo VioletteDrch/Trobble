@@ -63,13 +63,13 @@ export default class StartScene extends Phaser.Scene {
       this,
       this.scale.width / 2,
       this.scale.height / 2,
-      this.scale.width * 0.9
+      this.scale.width * 0.9,
     );
   }
 
   createLobby(playerName) {
     const ws = new WebSocket(server.websocket());
-    
+
     ws.onerror = (error) => {
       console.error("WebSocket error:", error);
     };
@@ -87,14 +87,17 @@ export default class StartScene extends Phaser.Scene {
         return;
       }
 
-      const playerId = data.player_id;
-      const gameId = data.game_id;
+      const playerId = data.playerId;
+      const gameId = data.gameId;
 
       const players = data.lobby.players;
-      const mappedPlayers = Object.entries(players).reduce((acc, [id, player]) => {
+      const mappedPlayers = Object.entries(players).reduce(
+        (acc, [id, player]) => {
           acc[id] = player.name;
           return acc;
-      }, {});
+        },
+        {},
+      );
 
       this.scene.start("lobby-scene", {
         playerName,
@@ -121,4 +124,3 @@ export default class StartScene extends Phaser.Scene {
     return message;
   }
 }
-

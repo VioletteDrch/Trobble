@@ -25,7 +25,7 @@ export default class JoinLobbyScene extends Phaser.Scene {
       this,
       this.scale.width / 2,
       this.scale.height / 2,
-      this.scale.width * 0.9
+      this.scale.width * 0.9,
     );
 
     this.fetchLobbies();
@@ -46,7 +46,7 @@ export default class JoinLobbyScene extends Phaser.Scene {
     this.lobbiesLoadingMessage = this.createText(
       "Loading lobbies...",
       this.scale.height / 2,
-      "24px"
+      "24px",
     );
     this.lobbiesContainer = this.add.container(this.scale.width / 2, 100);
   }
@@ -59,17 +59,17 @@ export default class JoinLobbyScene extends Phaser.Scene {
       .setOrigin(0.5);
   }
 
-updateLobbiesList(lobbies) {
-  this.lobbiesContainer.removeAll(true);
-  this.lobbiesLoadingMessage.setText(
-    lobbies.length === 0 ? "No lobbies found" : ""
-  );
+  updateLobbiesList(lobbies) {
+    this.lobbiesContainer.removeAll(true);
+    this.lobbiesLoadingMessage.setText(
+      lobbies.length === 0 ? "No lobbies found" : "",
+    );
 
-  lobbies.slice(0, 5).forEach((gameId, index) => {
-    const button = this.createLobbyButton(gameId, index * 60);
-    this.lobbiesContainer.add(button);
-  });
-}
+    lobbies.slice(0, 5).forEach((gameId, index) => {
+      const button = this.createLobbyButton(gameId, index * 60);
+      this.lobbiesContainer.add(button);
+    });
+  }
 
   createLobbyButton(gameId, y) {
     return this.add
@@ -105,7 +105,7 @@ updateLobbiesList(lobbies) {
 
   joinLobby(gameId, playerName) {
     const ws = new WebSocket(server.websocket());
-    
+
     ws.onerror = (error) => {
       console.error("WebSocket error:", error);
     };
@@ -130,10 +130,13 @@ updateLobbiesList(lobbies) {
         console.error("Error joining lobby:", response.error);
       } else {
         const players = response.lobby.players;
-        const mappedPlayers = Object.entries(players).reduce((acc, [id, player]) => {
+        const mappedPlayers = Object.entries(players).reduce(
+          (acc, [id, player]) => {
             acc[id] = player.name;
             return acc;
-        }, {});
+          },
+          {},
+        );
 
         this.scene.start("lobby-scene", {
           playerName,
@@ -142,10 +145,9 @@ updateLobbiesList(lobbies) {
           isHost: false,
           initialPlayers: mappedPlayers,
           hostId: response.lobby.host_id,
-          ws: ws
+          ws: ws,
         });
       }
     };
   }
 }
-

@@ -87,14 +87,13 @@ export default class LobbyScene extends Phaser.Scene {
   }
 
   updatePlayersList(players, hostId) {
-    const playerNames = Object.entries(players)
-      .map(([id, player]) => {
-        let displayName = player === this.playerName ? "You" : player;
-        if (id === hostId) {
-          displayName += " ⭐";
-        }
-        return displayName;
-      })
+    const playerNames = Object.entries(players).map(([id, player]) => {
+      let displayName = player === this.playerName ? "You" : player;
+      if (id === hostId) {
+        displayName += " ⭐";
+      }
+      return displayName;
+    });
 
     this.playersList
       .setText(playerNames.join("\n"))
@@ -118,7 +117,7 @@ export default class LobbyScene extends Phaser.Scene {
 
   handleWebSocketMessage(event) {
     const message = JSON.parse(event.data);
-    
+
     if (message.method === "ping") {
       this.sendMessage("pong", {});
     } else if (message.method === "join") {
@@ -135,4 +134,3 @@ export default class LobbyScene extends Phaser.Scene {
     this.ws.send(JSON.stringify(message));
   }
 }
-

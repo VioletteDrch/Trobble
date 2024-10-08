@@ -31,6 +31,9 @@ def websocket_message_from_dict(s: Dict[str, Any]) -> WebsocketMessage:
 @dataclass
 class CreateGameResponse:
     message: str
+    gameId: str
+    playerId: str
+    lobby: any
     method: str = "create"
 
 

@@ -42,6 +42,13 @@ class LobbyRepository:
         if lobby and player_id in lobby["players"]:
             del lobby["players"][player_id]
 
-    def get_player_connection(self, game_id: str, player_id: str):
-        player = self.get_player(game_id, player_id)
-        return player["connection"] if player else None
+    def get_player_connections(self, game_id: str) -> Dict[str, any]:
+        lobby: Optional[Lobby] = self.get_lobby(game_id)
+        return (
+            {
+                player_id: player["connection"]
+                for player_id, player in lobby["players"].items()
+            }
+            if lobby
+            else {}
+        )

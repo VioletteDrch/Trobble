@@ -9,10 +9,11 @@ from game_flow.lobby_repository import *
 from game_flow.game_state_elements import GameStateManager, PlayerMove
 from game_flow.game_pojos import *
 from flask_sock import Sock
+from utils.generate_game_id import generate_game_id
 from utils.ping_client import ping_client
 from utils.serialise_lobby import serialise_lobby
 
-player_connections_by_game_id: Dict[str, Dict[int, Any]] = {}
+player_connections_by_game_id: Dict[str, Dict[str, Any]] = {}
 games: Dict[str, GameStateManager] = {}
 lobby_repository: LobbyRepository = LobbyRepository()
 
@@ -36,13 +37,13 @@ def create_game(websocket_message: WebsocketMessage, connection):
     lobby_repository.add_lobby(game_id, new_lobby)
     lobby_repository.add_player(game_id, host_id, host_name, connection)
 
-    response = {
-        "message": "Lobby and game created successfully",
-        "game_id": game_id,
-        "player_id": host_id,
-        "lobby": serialise_lobby(new_lobby),
-    }
-    connection.send(json.dumps(response))
+    response = CreateGameResponse(
+        message="Game created successfully",
+        gameId=game_id,
+        playerId=host_id,
+        lobby=serialise_lobby(new_lobby),
+    )
+    connection.send(json.dumps(response.__dict__))
 
     print(f"Added player {host_id} to lobby {game_id}")
 
@@ -50,7 +51,7 @@ def create_game(websocket_message: WebsocketMessage, connection):
 
 
 def init_game(host_id, game_id):
-    player_connections = player_connections_by_game_id[game_id]
+    player_connections = lobby_repository.get_player_connections(game_id)
     game_state_manager = GameStateManager([*player_connections], host_id)
     games[game_id] = game_state_manager
     game_state = game_state_manager.game_state
@@ -102,14 +103,12 @@ def join_game(websocket_message: WebsocketMessage, connection):
 
     threading.Thread(target=ping_client, args=(connection, player_id, game_id)).start()
 
-    return player_id
-
 
 def handle_score(player_connection, player_move: PlayerMove, game_id):
     game: GameStateManager = games[game_id]
 
     if game.game_state.active and game.resolve_game_state(player_move):
-        player_connections = player_connections_by_game_id.get(game_id, {})
+        player_connections = lobby_repository.get_player_connections(game_id)
         response = PlayerScoredResponse(
             player_move.player_id, game.game_state.middle_card
         )
@@ -124,19 +123,14 @@ def handle_score(player_connection, player_move: PlayerMove, game_id):
 
 def end_game(game_id):
     game: GameStateManager = games[game_id]
-    player_connections = player_connections_by_game_id[game_id]
+    player_connections = lobby_repository.get_player_connections(game_id)
     broadcast(
         player_connections.values(),
         json.dumps(GameEndResponse(game.game_state.winner).__dict__),
     )
     for connection in player_connections.values():
         connection.close()
-    del player_connections_by_game_id[game_id]
     del games[game_id]
-
-
-def generate_game_id(length: int = 6) -> str:
-    return "".join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
 
 def socket_handler(websocket):
@@ -153,6 +147,8 @@ def socket_handler(websocket):
                 join_game(websocket_message, websocket)
             elif websocket_message.method == "pong":
                 websocket.pong_received = True
+            elif websocket_message.method == "init":
+                init_game(websocket_message.player_id, websocket_message.game_id)
             elif websocket_message.method == "score":
                 try:
                     player_move_req = player_move_from_dict(websocket_message.payload)
