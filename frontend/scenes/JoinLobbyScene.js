@@ -14,7 +14,6 @@ export default class JoinLobbyScene extends Phaser.Scene {
 
   init(data) {
     this.playerName = data.playerName;
-    this.ws = data.ws; // Assume WebSocket is passed from previous scene
   }
 
   create() {
@@ -66,29 +65,28 @@ updateLobbiesList(lobbies) {
     lobbies.length === 0 ? "No lobbies found" : ""
   );
 
-  lobbies.slice(0, 5).forEach((lobbyCode, index) => {
-    const button = this.createLobbyButton(lobbyCode, index * 60);
+  lobbies.slice(0, 5).forEach((gameId, index) => {
+    const button = this.createLobbyButton(gameId, index * 60);
     this.lobbiesContainer.add(button);
   });
 }
 
-  createLobbyButton(lobbyCode, y) {
+  createLobbyButton(gameId, y) {
     return this.add
-      .text(0, y, lobbyCode, {
+      .text(0, y, gameId, {
         fontSize: "30px",
         fill: "#fff",
         backgroundColor: "#c671ff",
         padding: { x: 10, y: 5 },
       })
       .setInteractive()
-      .on("pointerdown", () => this.joinLobby(lobbyCode, this.playerName))
+      .on("pointerdown", () => this.joinLobby(gameId, this.playerName))
       .setOrigin(0.5);
   }
 
   fetchLobbies() {
     fetch(`${server.api()}/lobbies`)
       .then((response) => {
-        console.log(response)
         if (!response.ok) {
           return response.json().then((data) => {
             throw new Error(data.error || "Failed to fetch lobbies");
@@ -105,31 +103,46 @@ updateLobbiesList(lobbies) {
       });
   }
 
-  joinLobby(lobbyCode, playerName) {
-    const message = {
-      method: "join",
-      player_id: null,
-      payload: {
-        player_name: playerName,
-        lobby_code: lobbyCode,
-      },
+  joinLobby(gameId, playerName) {
+    const ws = new WebSocket(server.websocket());
+    
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
     };
 
-    this.ws.send(JSON.stringify(message));
+    ws.onopen = () => {
+      const message = {
+        method: "join",
+        player_id: null,
+        game_id: gameId,
+        payload: {
+          player_name: playerName,
+        },
+      };
 
-    this.ws.onmessage = (event) => {
+      ws.send(JSON.stringify(message));
+    };
+
+    ws.onmessage = (event) => {
       const response = JSON.parse(event.data);
       if (response.error) {
         this.errorMessage.show(response.error || "Failed to join lobby");
         console.error("Error joining lobby:", response.error);
       } else {
+        const players = response.lobby.players;
+        const mappedPlayers = Object.entries(players).reduce((acc, [id, player]) => {
+            acc[id] = player.name;
+            return acc;
+        }, {});
+
         this.scene.start("lobby-scene", {
           playerName,
           playerId: response.playerId,
-          lobbyCode,
+          gameId,
           isHost: false,
-          initialPlayers: response.lobby.players,
+          initialPlayers: mappedPlayers,
           hostId: response.lobby.host_id,
+          ws: ws
         });
       }
     };

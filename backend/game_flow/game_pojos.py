@@ -13,32 +13,11 @@ class Lobby(TypedDict):
     started: bool
 
 
-class GetLobbyResponse(TypedDict):
-    lobby_code: str
-    host: str
-    players: Dict[str, str]
-
-
-class ErrorResponse(TypedDict):
-    error: str
-
-
-class CreateLobbyResponse(TypedDict):
-    message: str
-    lobby_code: str
-    player_id: str
-    lobby: Lobby
-
-
-class JoinLobbyResponse(TypedDict):
-    message: str
-    player_id: str
-    lobby: Lobby
-
-
 class WebsocketMessage:
 
-    def __init__(self, method: str, player_id: int, game_id: str, payload: Any = {}) -> None:
+    def __init__(
+        self, method: str, player_id: int, game_id: str, payload: Any = {}
+    ) -> None:
         self.method = method
         self.player_id = player_id
         self.game_id = game_id
@@ -60,7 +39,9 @@ class JoinGameResponse:
     message: str
     playerId: str
     playerName: str
+    lobby: any
     method: str = "join"
+
 
 @dataclass
 class PlayerScoredResponse:

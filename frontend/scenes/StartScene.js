@@ -88,7 +88,7 @@ export default class StartScene extends Phaser.Scene {
       }
 
       const playerId = data.player_id;
-      const lobbyCode = data.lobby_code;
+      const gameId = data.game_id;
 
       const players = data.lobby.players;
       const mappedPlayers = Object.entries(players).reduce((acc, [id, player]) => {
@@ -99,7 +99,7 @@ export default class StartScene extends Phaser.Scene {
       this.scene.start("lobby-scene", {
         playerName,
         playerId,
-        lobbyCode,
+        gameId,
         isHost: true,
         initialPlayers: mappedPlayers,
         hostId: data.lobby.host_id,
