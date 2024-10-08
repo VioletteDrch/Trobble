@@ -13,7 +13,6 @@ from utils.generate_game_id import generate_game_id
 from utils.ping_client import ping_client
 from utils.serialise_lobby import serialise_lobby
 
-player_connections_by_game_id: Dict[str, Dict[str, Any]] = {}
 games: Dict[str, GameStateManager] = {}
 lobby_repository: LobbyRepository = LobbyRepository()
 
