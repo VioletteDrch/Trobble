@@ -5,9 +5,9 @@ from game_flow.lobby_controller import lobby_bp
 from game_flow.game_flow_websocket import sock
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for cross-origin requests
+CORS(app)
 
-app.register_blueprint(lobby_bp)
+app.register_blueprint(lobby_bp, url_prefix='/lobbies')
 app.register_blueprint(images_bp, url_prefix='/images')
 sock.init_app(app)
 

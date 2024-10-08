@@ -1,4 +1,7 @@
 import json
+import string
+import random
+import uuid
 from typing import Collection
 from game_flow.lobby_repository import *
 from game_flow.game_state_elements import GameStateManager, PlayerMove
@@ -11,16 +14,51 @@ lobby_repository: LobbyRepository = LobbyRepository()
 
 sock = Sock()
 
-def create_game(game_id, player_id, connection):
-    if game_id in player_connections_by_game_id:
-        message = 'game already exists'
-    else:
-        player_connections_by_game_id[game_id] = {}
-        player_connections_by_game_id[game_id][player_id] = connection
-        message = 'ok'
-    print(message)
-    connection.send(json.dumps(CreateGameResponse(message).__dict__))
+# Todo: find a better way to do this
+def serialize_lobby(lobby: Lobby) -> Dict:
+    serialized_players = {
+        player_id: {
+            "name": player_data["name"]
+        }
+        for player_id, player_data in lobby["players"].items()
+    }
 
+    serialized_lobby = {
+        "host_id": lobby["host_id"],
+        "players": serialized_players,
+        "started": lobby["started"]
+    }
+
+    return serialized_lobby
+
+def create_game(websocket_message: WebsocketMessage, connection):
+    host_name: str = websocket_message.payload.get('host_name')
+    if not host_name:
+        connection.send(json.dumps({"error": "Host name is required"}))
+        return
+
+    lobby_code: str = generate_lobby_code()
+    while lobby_repository.get_lobby(lobby_code):
+        lobby_code = generate_lobby_code()
+
+    host_id: str = str(uuid.uuid4())
+
+    new_lobby: Lobby = {
+        "host_id": host_id,
+        "players": {},
+        "started": False
+    }
+
+    lobby_repository.add_lobby(lobby_code, new_lobby)
+    lobby_repository.add_player(lobby_code, host_id, host_name, connection)
+
+    response = {
+        "message": "Lobby and game created successfully",
+        "lobby_code": lobby_code,
+        "player_id": host_id,
+        "lobby": serialize_lobby(new_lobby)
+    }
+    connection.send(json.dumps(response))
 
 def init_game(host_id, game_id):
     player_connections = player_connections_by_game_id[game_id]
@@ -35,29 +73,36 @@ def init_game(host_id, game_id):
     game_state.active = True
 
 
-def join_game(player_id, player_name, game_id, websocket):
-    if game_id not in player_connections_by_game_id:
-        message = 'game does not exist'
+def join_game(player_name, lobby_code, websocket):
+    lobby = lobby_repository.get_lobby(lobby_code)
+    
+    if not lobby:
+        message = 'lobby does not exist'
+    elif lobby['started']:
+        message = 'game has already started'
+    elif len(lobby['players']) >= 6:
+        message = 'lobby is full, limit of 6 players reached'
+    elif player_name in lobby['players'].values():
+        message = 'player name already exists in the lobby'
     else:
-        connections = player_connections_by_game_id[game_id]
-        if player_id in connections:
-            message = 'already connected'
-        else:
-            response = JoinGameResponse(
-                message=f"Player {player_name} entered the game",
-                playerId=player_id,
-                playerName=player_name
-            )
-            
-            broadcast(
-                connections.values(),
-                json.dumps(response.__dict__)
-            )
-            connections[player_id] = websocket
-            player_connections_by_game_id[game_id] = connections
-            print(f"Added player {player_id} to lobby {game_id}")
+        player_id = str(uuid.uuid4())
+        lobby_repository.add_player(lobby_code, player_id, playerName, connection)
+        lobby['players'][player_id] = player_name
+        
+        response = JoinGameResponse(
+            message=f"Player {player_name} entered the game",
+            playerId=player_id,
+            playerName=player_name,
+            lobby=lobby
+        )
 
-    websocket.send(json.dumps(response.__dict__))
+        broadcast(lobby['players'].keys(), json.dumps(response.__dict__))
+        connections = player_connections_by_game_id.setdefault(lobby_code, {})
+        connections[player_id] = websocket
+        player_connections_by_game_id[lobby_code] = connections
+        print(f"Added player {player_id} to lobby {lobby_code}")
+
+    websocket.send(json.dumps({"error": message} if message else response.__dict__))
 
 
 def handle_score(player_connection, player_move: PlayerMove, game_id):
@@ -103,6 +148,10 @@ def remove_player(game_id, player_id):
             lobby_repository.remove_lobby(game_id)
 
 
+def generate_lobby_code(length: int = 6) -> str:
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+
+
 def socket_handler(websocket):
     player_id = None
     game_id = None
@@ -113,13 +162,10 @@ def socket_handler(websocket):
             websocket_message: WebsocketMessage = websocket_message_from_dict(json.loads(message))
 
             if websocket_message.method == 'create':
-                create_game(websocket_message.game_id, websocket_message.player_id, websocket)
-                player_id = websocket_message.player_id
-                game_id = websocket_message.game_id
+                create_game(websocket_message, websocket)
             elif websocket_message.method == 'join':
-                join_game(websocket_message.player_id, websocket_message.payload['player_name'], websocket_message.game_id, websocket)
-                player_id = websocket_message.player_id
-                game_id = websocket_message.game_id
+                player_id = join_game(websocket_message.payload['player_name'], websocket_message.payload['lobby_code'], websocket)
+                lobby_code = websocket_message.payload['lobby_code']
             elif websocket_message.method == 'init':
                 init_game(websocket_message.player_id, websocket_message.game_id)
             elif websocket_message.method == 'score':

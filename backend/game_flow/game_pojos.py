@@ -2,15 +2,15 @@ from typing import Dict, List, Any, TypedDict
 from dataclasses import dataclass
 
 
+class Player(TypedDict):
+    name: str
+    connection: any
+
+
 class Lobby(TypedDict):
     host_id: str
-    players: Dict[str, str]
-    private: bool
+    players: Dict[str, Player]
     started: bool
-
-
-class LobbyWithCode(Lobby):
-    lobby_code: str
 
 
 class GetLobbyResponse(TypedDict):
@@ -26,18 +26,14 @@ class ErrorResponse(TypedDict):
 class CreateLobbyResponse(TypedDict):
     message: str
     lobby_code: str
-    user_id: str
+    player_id: str
     lobby: Lobby
 
 
 class JoinLobbyResponse(TypedDict):
     message: str
-    user_id: str
+    player_id: str
     lobby: Lobby
-
-
-class ChangeNameResponse(TypedDict):
-    message: str
 
 
 class WebsocketMessage:
