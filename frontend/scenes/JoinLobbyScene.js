@@ -120,9 +120,11 @@ export default class JoinLobbyScene extends Phaser.Scene {
       .then((data) => {
         this.scene.start("lobby-scene", {
           playerName,
-          playerId: data.player_id, //todo actually send this from backend
+          playerId: data.user_id,
           lobbyCode,
           isHost: false,
+          initialPlayers: data.lobby.players,
+          hostId: data.lobby.host_id
         });
       })
       .catch((error) => {

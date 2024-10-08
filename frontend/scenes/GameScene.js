@@ -150,7 +150,6 @@ export default class GameScene extends Phaser.Scene {
         data.forEach((image, index) => {
           const url = `${apiBaseUrl}${image}`;
           const key = `image_${index}`;
-          console.log(key);
           this.load.image(key, url);
         });
       });

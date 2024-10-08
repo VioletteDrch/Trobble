@@ -26,10 +26,14 @@ class ErrorResponse(TypedDict):
 class CreateLobbyResponse(TypedDict):
     message: str
     lobby_code: str
-    
-    
+    user_id: str
+    lobby: Lobby
+
+
 class JoinLobbyResponse(TypedDict):
     message: str
+    user_id: str
+    lobby: Lobby
 
 
 class ChangeNameResponse(TypedDict):
@@ -54,9 +58,12 @@ class CreateGameResponse:
     message: str
     method: str = "create"
 
+
 @dataclass
 class JoinGameResponse:
     message: str
+    playerId: str
+    playerName: str
     method: str = "join"
 
 @dataclass
