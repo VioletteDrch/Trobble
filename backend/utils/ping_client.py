@@ -9,9 +9,9 @@ def ping_client(websocket, player_id, game_id):
     while True:
         time.sleep(2)
         try:
+            websocket.pong_received = False
             ping_message = json.dumps({"method": "ping"})
             websocket.send(ping_message)
-            websocket.ping_time = time.time()
 
             time.sleep(2)
             if not websocket.pong_received:
