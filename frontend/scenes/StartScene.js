@@ -47,80 +47,80 @@ export default class StartScene extends Phaser.Scene {
 
   create() {
     this.logo = this.add.image(160, 160, "logo").setScale(0.3);
-
-    this.userName = this.generateRandomName();
+    this.playerName = this.generateRandomName();
 
     this.add
       .image(this.scale.width / 2, this.scale.height / 2 + 115, "createLobby")
       .setInteractive()
-      .on("pointerdown", () => this.createLobby(this.userName));
+      .on("pointerdown", () => this.createLobby(this.playerName));
 
     this.add
       .image(this.scale.width / 2, this.scale.height - 50, "joinLobby")
       .setInteractive()
-      .on("pointerdown", () => this.joinLobby(this.userName));
+      .on("pointerdown", () => this.joinLobby(this.playerName));
 
     this.errorMessage = new ErrorMessage(
       this,
       this.scale.width / 2,
       this.scale.height / 2,
-      this.scale.width * 0.9
+      this.scale.width * 0.9,
     );
   }
 
   createLobby(playerName) {
-    fetch(`${server.api()}/lobbies`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        host_name: playerName,
-        private: false,
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          return response.json().then((data) => {
-            throw new Error(data.error || "Failed to create lobby");
-          });
-        }
-        return response.json();
-      })
-      .then((data) => {
-        const ws = new WebSocket(server.websocket());
-        const playerId = data.user_id;
-        ws.onerror = (error) => {
-          console.error("ws error", error);
-        };
-        ws.onopen = (ev) => {
-          ws.send(
-            JSON.stringify(this.buildCreateWSMessage(playerId, data.lobby_code))
-          );
-          this.scene.start("lobby-scene", {
-            playerName,
-            playerId,
-            lobbyCode: data.lobby_code,
-            isHost: true,
-            initialPlayers: data.lobby.players,
-            hostId: data.lobby.host_id,
-            ws: ws,
-          });
-        };
-      })
-      .catch((error) => {
-        console.error("Error creating lobby:", error);
-        this.errorMessage.show(error.message || "Failed to create lobby");
+    const ws = new WebSocket(server.websocket());
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    ws.onopen = () => {
+      const createMessage = this.buildCreateWSMessage(playerName);
+      ws.send(JSON.stringify(createMessage));
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      if (data.error) {
+        this.errorMessage.show(data.error);
+        return;
+      }
+
+      const playerId = data.playerId;
+      const gameId = data.gameId;
+
+      const players = data.lobby.players;
+      const mappedPlayers = Object.entries(players).reduce(
+        (acc, [id, player]) => {
+          acc[id] = player.name;
+          return acc;
+        },
+        {},
+      );
+
+      this.scene.start("lobby-scene", {
+        playerName,
+        playerId,
+        gameId,
+        isHost: true,
+        initialPlayers: mappedPlayers,
+        hostId: data.lobby.host_id,
+        ws: ws,
       });
+    };
   }
 
   joinLobby(playerName) {
     this.scene.start("join-lobby-scene", { playerName });
   }
 
-  buildCreateWSMessage(playerId, gameId) {
-    const message = buildBaseWSMessage(playerId, gameId);
+  buildCreateWSMessage(playerName) {
+    const message = buildBaseWSMessage(null, null);
     message.method = "create";
+    message.payload = {
+      host_name: playerName,
+    };
     return message;
   }
 }

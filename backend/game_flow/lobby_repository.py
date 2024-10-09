@@ -1,5 +1,6 @@
 from typing import Dict, Optional
-from game_flow.game_pojos import *
+from game_flow.game_pojos import Lobby, Player
+
 
 class LobbyRepository:
     _instance = None
@@ -10,19 +11,44 @@ class LobbyRepository:
             cls._instance._lobbies = {}
         return cls._instance
 
-    def add_lobby(self, lobby_code: str, lobby: Lobby) -> None:
-        self._lobbies[lobby_code] = lobby
+    def add_lobby(self, game_id: str, lobby: Lobby) -> None:
+        self._lobbies[game_id] = lobby
 
-    def get_lobby(self, lobby_code: str) -> Optional[Lobby]:
-        return self._lobbies.get(lobby_code)
+    def get_lobby(self, game_id: str) -> Optional[Lobby]:
+        return self._lobbies.get(game_id)
 
-    def remove_lobby(self, lobby_code: str) -> None:
-        if lobby_code in self._lobbies:
-            del self._lobbies[lobby_code]
+    def remove_lobby(self, game_id: str) -> None:
+        if game_id in self._lobbies:
+            del self._lobbies[game_id]
 
     def get_all_public_lobbies(self) -> Dict[str, Lobby]:
         return {
-            code: lobby
-            for code, lobby in self._lobbies.items()
-            if not lobby['started'] and not lobby['private']
+            code: lobby for code, lobby in self._lobbies.items() if not lobby["started"]
         }
+
+    def add_player(self, game_id: str, player_id: str, name: str, connection) -> None:
+        lobby = self._lobbies.get(game_id)
+        if lobby:
+            lobby["players"][player_id] = {"name": name, "connection": connection}
+
+    def get_player(self, game_id: str, player_id: str) -> Optional[Player]:
+        lobby = self._lobbies.get(game_id)
+        if lobby:
+            return lobby["players"].get(player_id)
+        return None
+
+    def remove_player(self, game_id: str, player_id: str) -> None:
+        lobby = self._lobbies.get(game_id)
+        if lobby and player_id in lobby["players"]:
+            del lobby["players"][player_id]
+
+    def get_player_connections(self, game_id: str) -> Dict[str, any]:
+        lobby: Optional[Lobby] = self.get_lobby(game_id)
+        return (
+            {
+                player_id: player["connection"]
+                for player_id, player in lobby["players"].items()
+            }
+            if lobby
+            else {}
+        )

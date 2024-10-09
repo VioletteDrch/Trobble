@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { server, buildBaseWSMessage } from "../config/serverConfig.js";
+import { buildBaseWSMessage } from "../config/serverConfig.js";
 import ErrorMessage from "../components/ErrorMessage.js";
 
 export default class LobbyScene extends Phaser.Scene {
@@ -14,12 +14,12 @@ export default class LobbyScene extends Phaser.Scene {
   init(data) {
     this.playerName = data.playerName;
     this.playerId = data.playerId;
-    this.lobbyCode = data.lobbyCode;
+    this.gameId = data.gameId;
     this.isHost = data.isHost;
     this.hostId = data.hostId;
     this.players = { ...data.initialPlayers };
 
-    this.ws = data.ws || new WebSocket(server.websocket());
+    this.ws = data.ws;
     this.ws.onopen = () => this.handleWebSocketOpen();
     this.ws.onmessage = (event) => this.handleWebSocketMessage(event);
 
@@ -34,7 +34,7 @@ export default class LobbyScene extends Phaser.Scene {
   }
 
   create() {
-    this.createText(`Lobby ${this.lobbyCode}`, 50, "30px", "bold");
+    this.createText(`Lobby ${this.gameId}`, 50, "30px", "bold");
     this.createText(`Welcome \n${this.playerName}!`, 100, "22px");
     this.createText("Players:", 160, "24px", "bold");
 
@@ -72,7 +72,7 @@ export default class LobbyScene extends Phaser.Scene {
       this.scene.start("scene-game", {
         websocket: this.ws,
         playerId: this.playerId,
-        gameId: this.lobbyCode,
+        gameId: this.gameId,
         isHost: true,
       });
     });
@@ -87,18 +87,13 @@ export default class LobbyScene extends Phaser.Scene {
   }
 
   updatePlayersList(players, hostId) {
-    const playerNames = Object.entries(players)
-      .map(([id, player]) => {
-        if (player) {
-          let displayName = player === this.playerName ? "You" : player;
-          if (id === hostId) {
-            displayName += " ⭐";
-          }
-          return displayName;
-        }
-        return undefined;
-      })
-      .filter((name) => name !== undefined); // Todo: there is a bug where undefined gets into the player list somehow
+    const playerNames = Object.entries(players).map(([id, player]) => {
+      let displayName = player === this.playerName ? "You" : player;
+      if (id === hostId) {
+        displayName += " ⭐";
+      }
+      return displayName;
+    });
 
     this.playersList
       .setText(playerNames.join("\n"))
@@ -122,17 +117,20 @@ export default class LobbyScene extends Phaser.Scene {
 
   handleWebSocketMessage(event) {
     const message = JSON.parse(event.data);
-    if (message.method === "join") {
+
+    if (message.method === "ping") {
+      this.sendMessage("pong", {});
+    } else if (message.method === "join") {
       this.handlePlayerJoin(message.playerId, message.playerName);
     } else if (message.method === "disconnect") {
       this.handlePlayerDisconnect(message.playerId);
     }
   }
+
   sendMessage(method, payload) {
-    const message = buildBaseWSMessage(this.playerId, this.lobbyCode);
+    const message = buildBaseWSMessage(this.playerId, this.gameId);
     message.method = method;
     message.payload = payload;
     this.ws.send(JSON.stringify(message));
   }
 }
-
