@@ -50,6 +50,7 @@ export default class GameScene extends Phaser.Scene {
         this.sendMessage("pong", {});
       }
       if (message.method === "init") {
+        console.log("init received for user ", playerInfo.id);
         this.initializeGame(message);
       } else if (message.method === "score") {
         this.handleScore(message);
@@ -169,7 +170,6 @@ export default class GameScene extends Phaser.Scene {
     const message = buildBaseWSMessage(playerInfo.id, gameState.gameId);
     message.method = method;
     message.payload = payload;
-    console.log(JSON.stringify(message));
     this.ws.send(JSON.stringify(message));
   }
 }

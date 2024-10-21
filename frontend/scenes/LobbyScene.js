@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import {buildBaseWSMessage} from "../config/serverConfig.js";
 import ErrorMessage from "../components/ErrorMessage.js";
+import {gameState, playerInfo} from "../config/gameConfig.js";
 
 export default class LobbyScene extends Phaser.Scene {
   constructor() {
@@ -69,12 +70,16 @@ export default class LobbyScene extends Phaser.Scene {
 
   createStartButton() {
     this.createButton("startGame", this.scale.height - 50, () => {
-      this.scene.start("scene-game", {
-        websocket: this.ws,
-        playerId: this.playerId,
-        gameId: this.gameId,
-        isHost: true,
-      });
+      this.startGameScene();
+    });
+  }
+
+  startGameScene() {
+    this.scene.start("scene-game", {
+      websocket: this.ws,
+      playerId: this.playerId,
+      gameId: this.gameId,
+      isHost: true,
     });
   }
 
@@ -120,6 +125,8 @@ export default class LobbyScene extends Phaser.Scene {
 
     if (message.method === "ping") {
       this.sendMessage("pong", {});
+    } else if (message.method === "init") {
+      this.startGameScene();
     } else if (message.method === "join") {
       this.handlePlayerJoin(message.playerId, message.playerName);
     } else if (message.method === "disconnect") {
