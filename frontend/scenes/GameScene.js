@@ -50,7 +50,6 @@ export default class GameScene extends Phaser.Scene {
         this.sendMessage("pong", {});
       }
       if (message.method === "init") {
-        console.log("init received for user ", playerInfo.id);
         this.initializeGame(message);
       } else if (message.method === "score") {
         this.handleScore(message);

@@ -93,18 +93,12 @@ export class CardMechanics {
   buildScoreMessage() {
     const scoreMessage = buildBaseWSMessage(playerInfo.id, gameState.gameId);
     scoreMessage.method = "score";
-    scoreMessage.playerMove = "{}"
+    // scoreMessage.playerMove = "{}"
     return scoreMessage;
   }
 
   matches(image) {
-    if (gameState.middleCard.includes(image.id)) {
-      const scoreMessage = this.buildScoreMessage();
-      this.ws.send(JSON.stringify(scoreMessage));
-      return true;
-    } else {
-      return false;
-    }
+    return gameState.middleCard.includes(image.id);
   }
 
   createImage(imageId, x, y, card) {
@@ -114,7 +108,7 @@ export class CardMechanics {
     image.id = imageId;
 
     // randomize layout
-    let randomSize = Math.floor(Math.random() * 21 + 25);
+    let randomSize = 65; // Math.floor(Math.random() * 21 + 25); FIXME go back after debugging
     image.setDisplaySize(randomSize, randomSize);
     const angles = getImageAngles();
     const anglePosition = this.getRandomPosition(angles);
@@ -124,6 +118,9 @@ export class CardMechanics {
     image.setInteractive();
     image.on("pointerdown", () => {
       if (this.matches(image)) {
+        const scoreMessage = this.buildScoreMessage();
+        console.log("score ?", JSON.stringify(scoreMessage));
+        this.ws.send(JSON.stringify(scoreMessage));
         gameState.activeAnimations = this.score(card); // this should not happen here
       } else {
         // blockInteractions(card); TODO

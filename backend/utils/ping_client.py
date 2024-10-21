@@ -10,7 +10,6 @@ def ping_client(websocket, player_id, game_id):
         time.sleep(2)
         try:
             websocket.pong_received = False
-            print("ping ", player_id)
             ping_message = json.dumps({"method": "ping"})
             websocket.send(ping_message)
 
