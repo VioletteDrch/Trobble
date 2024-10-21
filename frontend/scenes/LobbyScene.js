@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { buildBaseWSMessage } from "../config/serverConfig.js";
+import {buildBaseWSMessage} from "../config/serverConfig.js";
 import ErrorMessage from "../components/ErrorMessage.js";
 
 export default class LobbyScene extends Phaser.Scene {

@@ -8,7 +8,7 @@ import {
   playerInfo,
   otherPlayers,
 } from "../config/gameConfig";
-import { server, buildBaseWSMessage } from "../config/serverConfig.js";
+import { server, buildBaseWSMessage} from "../config/serverConfig.js";
 import ErrorMessage from "../components/ErrorMessage.js";
 
 export default class GameScene extends Phaser.Scene {
@@ -39,13 +39,16 @@ export default class GameScene extends Phaser.Scene {
     this.add.image(0, 0, "bg").setOrigin(0, 0).setScale(0.5);
     this.createVictorySign();
     this.errorMessage = new ErrorMessage(
-      this,
-      this.scale.width / 2,
-      40,
-      this.scale.width * 0.9
+        this,
+        this.scale.width / 2,
+        40,
+        this.scale.width * 0.9
     );
     this.ws.onmessage = (ev) => {
       const message = JSON.parse(ev.data);
+      if (message.method === "ping") {
+        this.sendMessage("pong", {});
+      }
       if (message.method === "init") {
         this.initializeGame(message);
       } else if (message.method === "score") {
@@ -56,7 +59,7 @@ export default class GameScene extends Phaser.Scene {
     };
     if (this.isHost) {
       this.ws.send(
-        JSON.stringify(this.buildInitMessage(playerInfo.id, gameState.gameId))
+          JSON.stringify(this.buildInitMessage(playerInfo.id, gameState.gameId))
       );
     }
   }
@@ -76,11 +79,12 @@ export default class GameScene extends Phaser.Scene {
   }
 
   handleScore(scoreMessage) {
+    // check if not invalid point
+    gameState.blocked = false;
     if (scoreMessage.player_id === playerInfo.id) {
       this.cardMechanics.score(this.currentCard);
       this.setPlayersCard(this.cards.pop());
     } else {
-      gameState.blocked = false;
       this.otherPlayerScore(
         scoreMessage.new_middle_card,
         otherPlayers.find((player) => player.id === scoreMessage.player_id)
@@ -142,13 +146,13 @@ export default class GameScene extends Phaser.Scene {
   }
 
   fetchImages() {
-    const apiBaseUrl = `${server.api()}/images/`;
+    const apiBaseUrl = `${server.api()}/images`;
 
-    return fetch(`${server.api()}/images`)
+    return fetch(`${apiBaseUrl}`)
       .then((response) => response.json())
       .then((data) => {
         data.forEach((image, index) => {
-          const url = `${apiBaseUrl}${image}`;
+          const url = `${apiBaseUrl}/${image}`;
           const key = `image_${index}`;
           this.load.image(key, url);
         });
@@ -159,5 +163,13 @@ export default class GameScene extends Phaser.Scene {
     const initMessage = buildBaseWSMessage(playerId, gameId);
     initMessage.method = "init";
     return initMessage;
+  }
+
+  sendMessage(method, payload) {
+    const message = buildBaseWSMessage(playerInfo.id, gameState.gameId);
+    message.method = method;
+    message.payload = payload;
+    console.log(JSON.stringify(message));
+    this.ws.send(JSON.stringify(message));
   }
 }

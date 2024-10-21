@@ -146,12 +146,13 @@ def socket_handler(websocket):
             elif websocket_message.method == "init":
                 init_game(websocket_message.player_id, websocket_message.game_id)
             elif websocket_message.method == "score":
+                print("method score called")
                 try:
                     player_move_req = player_move_from_dict(websocket_message.payload)
                     player_move = PlayerMove(
                         websocket_message.player_id,
                         player_move_req.symbol_id,
-                        player_move_req.middle_card_id,
+                        player_move_req.middle_card_id
                     )
                     handle_score(websocket, player_move, websocket_message.game_id)
                 except Exception as e:

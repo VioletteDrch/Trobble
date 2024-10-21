@@ -74,4 +74,5 @@ class PlayerMoveRequest:
 
 
 def player_move_from_dict(s: Dict[str, Any]) -> PlayerMoveRequest:
+    print("dict receive = ", s)
     return PlayerMoveRequest(**s)

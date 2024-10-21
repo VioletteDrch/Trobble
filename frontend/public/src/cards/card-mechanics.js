@@ -8,25 +8,17 @@ import {
   playerInfo,
   sizes,
 } from "../../../config/gameConfig";
+import {buildBaseWSMessage} from "../../../config/serverConfig.js";
 
 export class CardMechanics {
   constructor(scene) {
     this.scene = scene;
     this.ws = scene.ws;
-    this.totalImagesPerCard = 7;
+    this.totalImagesPerCard = 8;
   }
 
   getRandomPosition(list) {
     return Math.floor(Math.random() * list.length);
-  }
-
-  matches(image) {
-    if (gameState.middleCard.includes(image.id)) {
-      const scoreMessage = {};
-      return this.ws.send(JSON.stringify(scoreMessage));
-    } else {
-      return false;
-    }
   }
 
   isGameActive() {
@@ -98,6 +90,23 @@ export class CardMechanics {
     return [highlight, nameText, sound];
   }
 
+  buildScoreMessage() {
+    const scoreMessage = buildBaseWSMessage(playerInfo.id, gameState.gameId);
+    scoreMessage.method = "score";
+    scoreMessage.playerMove = "{}"
+    return scoreMessage;
+  }
+
+  matches(image) {
+    if (gameState.middleCard.includes(image.id)) {
+      const scoreMessage = this.buildScoreMessage();
+      this.ws.send(JSON.stringify(scoreMessage));
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   createImage(imageId, x, y, card) {
     // get image key from id and add it to the scene
     const imageKey = `image_${imageId}`;
@@ -115,9 +124,9 @@ export class CardMechanics {
     image.setInteractive();
     image.on("pointerdown", () => {
       if (this.matches(image)) {
-        gameState.activeAnimations = this.score(card);
+        gameState.activeAnimations = this.score(card); // this should not happen here
       } else {
-        blockInteractions(card);
+        // blockInteractions(card); TODO
       }
     });
 
