@@ -93,7 +93,7 @@ export class CardMechanics {
   buildScoreMessage() {
     const scoreMessage = buildBaseWSMessage(playerInfo.id, gameState.gameId);
     scoreMessage.method = "score";
-    // scoreMessage.playerMove = "{}"
+    scoreMessage.playerMove = "{}"
     return scoreMessage;
   }
 
@@ -117,14 +117,27 @@ export class CardMechanics {
     // bind player interactions to the image
     image.setInteractive();
     image.on("pointerdown", () => {
-      if (this.matches(image)) {
+
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
         const scoreMessage = this.buildScoreMessage();
         console.log("score ?", JSON.stringify(scoreMessage));
         this.ws.send(JSON.stringify(scoreMessage));
-        gameState.activeAnimations = this.score(card); // this should not happen here
+        gameState.activeAnimations = this.score(card);
       } else {
-        // blockInteractions(card); TODO
+        console.error("WebSocket is not open.");
       }
+
+      // FIXME restore match check after debugging communication with backend on scoring
+      // if (this.matches(image)) {
+      //   console.log("symbols match!");
+      //   const scoreMessage = this.buildScoreMessage();
+      //   console.log("score ?", JSON.stringify(scoreMessage));
+      //   this.ws.send(JSON.stringify(scoreMessage));
+      //   gameState.activeAnimations = this.score(card); // this should not happen here
+      // } else {
+      //   console.log("not a match...");
+      //   // blockInteractions(card); TODO
+      // }
     });
 
     // add to the card and return

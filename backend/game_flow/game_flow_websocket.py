@@ -157,6 +157,7 @@ def socket_handler(websocket):
                     handle_score(websocket, player_move, websocket_message.game_id)
                 except Exception as e:
                     websocket.send(PlayerScoredResponse(0, [], "bad request"))
+
     except Exception as e:
         print(f"WebSocket error: {e}")
 
