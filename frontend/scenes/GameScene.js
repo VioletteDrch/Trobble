@@ -14,7 +14,6 @@ import ErrorMessage from "../components/ErrorMessage.js";
 export default class GameScene extends Phaser.Scene {
   constructor() {
     super("scene-game");
-    this.cardMechanics = new CardMechanics(this);
   }
 
   preload() {
@@ -29,10 +28,12 @@ export default class GameScene extends Phaser.Scene {
   }
 
   init(data) {
+    console.log("creating game scene");
     this.ws = data.websocket;
     this.isHost = data.isHost;
     playerInfo.id = data.playerId;
     gameState.gameId = data.gameId;
+    this.cardMechanics = new CardMechanics(this);
   }
 
   create() {

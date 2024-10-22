@@ -12,6 +12,7 @@ import {buildBaseWSMessage} from "../../../config/serverConfig.js";
 
 export class CardMechanics {
   constructor(scene) {
+    console.log("creating card mechanics");
     this.scene = scene;
     this.ws = scene.ws;
     this.totalImagesPerCard = 8;
@@ -117,6 +118,8 @@ export class CardMechanics {
     // bind player interactions to the image
     image.setInteractive();
     image.on("pointerdown", () => {
+
+      console.log("user clicked");
 
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
         const scoreMessage = this.buildScoreMessage();
