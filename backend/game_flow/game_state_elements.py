@@ -45,6 +45,12 @@ class GameState:
         self.host_id = host_id
         self.winner: int = 0
 
+    def __str__(self):
+        game_state_str = f'host = {self.host_id}\nmiddle card = {self.middle_card.id}: {self.middle_card.combination}\n'
+        for pl, cards in self.players_cards.items():
+            game_state_str += f'player {pl} - {cards[0].id}: {cards[0].combination}\n'
+        return game_state_str
+
 
 class PlayerMove:
     def __init__(self, player_id: int, clicked_symbol: int, middle_card_id: int):
@@ -82,39 +88,22 @@ class GameStateManager:
 
         # Initialize game state
         self.game_state = GameState(middle_card, players_cards, game_id, host_id)
-
-
-    def __str__(self):
-        game_state_str = (
-            f"Current game state\n------------------\n"
-            f"* {len(self.game_state.players_cards.keys())} players\n"
-            f"* Middle card: {self.game_state.middle_card}"
-        )
-
-        for player_id in self.game_state.players_cards.keys():
-            player_cards = self.game_state.players_cards[player_id]
-            game_state_str += (
-                f"\n"
-                f"* Player {player_id} has {len(self.game_state.players_cards[player_id])} cards left. "
-                f"First card: {player_cards[0]}"
-            )
-        return game_state_str
+        print(self.game_state)
 
     def get_top_card_compo_for_player(self, player_id):
-        return self.game_state.players_cards[player_id][0]
+        return self.game_state.players_cards[player_id][0].combination
 
     def valid_player_match(self, move: PlayerMove) -> bool:
         # check the symbol exists both in the player's card and the middle card
         player_top_card_compo = self.get_top_card_compo_for_player(move.player_id)
-        print(player_top_card_compo)
-        print(self.game_state.middle_card)
+        print(move.symbol_id, player_top_card_compo)
 
         if move.symbol_id not in player_top_card_compo:
             # symbol should have not been clickable FIXME
-            print("symbol not present")
+            print("symbol not present in the player's card")
             return False
 
-        if move.symbol_id not in self.game_state.middle_card:
+        if move.symbol_id not in self.game_state.middle_card.combination:
             # not a match FIXME penalty?
             print("Invalid move")
             return False
@@ -126,12 +115,8 @@ class GameStateManager:
         # If the player's move is valid, update game state
         if self.valid_player_match(move):
             # resolve if game is still going or it should end, set active = False and set self.winner
-            new_middle_card = self.game_state.players_cards[move.player_id].pop(
-                0
-            )  # remove top card from player's pile
-            self.game_state.middle_card = (
-                new_middle_card  # set it as the new middle card
-            )
+            new_middle_card = self.game_state.players_cards[move.player_id][0]  # remove top card from player's pile
+            self.game_state.middle_card = new_middle_card  # set it as the new middle card
             return True
         else:
             return False

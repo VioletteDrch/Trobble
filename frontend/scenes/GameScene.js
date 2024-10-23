@@ -54,6 +54,7 @@ export default class GameScene extends Phaser.Scene {
         console.log("init received in game scene");
         this.initializeGame(message);
       } else if (message.method === "score") {
+        console.log("received score message")
         this.handleScore(message);
       } else if (message.method === "end") {
         this.gameEnd(message.winner);
@@ -68,9 +69,10 @@ export default class GameScene extends Phaser.Scene {
   }
 
   initializeGame(initMessage) {
-    gameState.middleCard = initMessage.middle_card;
-    console.log("MIDDLE CARD "+ initMessage.middle_card.id + " : " + initMessage.middle_card.combination);
-    console.log("TOTAL CARDS INIT "+ initMessage.player_cards.length);
+    gameState.middleCard.id = initMessage.middle_card.id;
+    gameState.middleCard.combination = initMessage.middle_card.combination;
+    console.log("middle card = "+ initMessage.middle_card.id + ": " + initMessage.middle_card.combination);
+    console.log("player 1st card " + playerInfo.id + " - " + initMessage.player_cards[0].id + ": " + initMessage.player_cards[0].combination);
     this.cards = initMessage.player_cards;
     this.cardMechanics.createCard(
       gameRules.pilePosition.x,

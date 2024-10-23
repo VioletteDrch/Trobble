@@ -50,9 +50,13 @@ class JoinGameResponse:
 @dataclass
 class PlayerScoredResponse:
     player_id: int
-    new_middle_card: list
-    error: str = ""
+    new_middle_card: Dict[str, List]
     method: str = "score"
+
+    def __init__(self, player_id, new_middle_card: Card):
+        self.player_id = player_id
+        self.new_middle_card = asdict(new_middle_card)
+        self.method = "score"
 
 
 @dataclass
@@ -82,5 +86,4 @@ class PlayerMoveRequest:
 
 
 def player_move_from_dict(s: Dict[str, Any]) -> PlayerMoveRequest:
-    print("dict receive = ", s)
     return PlayerMoveRequest(**s)

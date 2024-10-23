@@ -92,12 +92,12 @@ export class CardMechanics {
     return [highlight, nameText, sound];
   }
 
-  buildScoreMessage(imageId, middleCardId) {
+  buildScoreMessage(imageId, middleCard) {
     const scoreMessage = buildBaseWSMessage(playerInfo.id, gameState.gameId);
     scoreMessage.method = "score";
     scoreMessage.payload = {
-      symbol_id: 1,
-      middle_card_id: 1,
+      symbol_id: imageId,
+      middle_card_id: middleCard.id,
     };
     return scoreMessage;
   }
@@ -126,7 +126,7 @@ export class CardMechanics {
       console.log("user clicked");
 
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        const scoreMessage = this.buildScoreMessage(image.id, );
+        const scoreMessage = this.buildScoreMessage(image.id, gameState.middleCard);
         console.log("score ?", JSON.stringify(scoreMessage));
         this.ws.send(JSON.stringify(scoreMessage));
         gameState.activeAnimations = this.score(card);
