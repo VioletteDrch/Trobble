@@ -28,7 +28,6 @@ export default class GameScene extends Phaser.Scene {
   }
 
   init(data) {
-    console.log("creating game scene");
     this.ws = data.websocket;
     this.isHost = data.isHost;
     playerInfo.id = data.playerId;
@@ -61,7 +60,6 @@ export default class GameScene extends Phaser.Scene {
       }
     };
     if (this.isHost) {
-      console.log("host init");
       this.ws.send(
           JSON.stringify(this.buildInitMessage(playerInfo.id, gameState.gameId))
       );
@@ -82,16 +80,17 @@ export default class GameScene extends Phaser.Scene {
       0x00000,
       () => {}
     );
-    this.setPlayersCard(this.cards[0].combination);
+    this.setPlayersCard();
   }
 
   handleScore(scoreMessage) {
-    // check if not invalid point
     gameState.blocked = false;
     if (scoreMessage.player_id === playerInfo.id) {
+      console.log("you scored $_$ !")
       this.cardMechanics.score(this.currentCard);
-      this.setPlayersCard(this.cards[0]);
+      this.setPlayersCard();
     } else {
+      console.log("other player scored >_<")
       this.otherPlayerScore(
         scoreMessage.new_middle_card,
         otherPlayers.find((player) => player.id === scoreMessage.player_id)
@@ -99,8 +98,8 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-  setPlayersCard(playersCard) {
-    this.currentCard = this.cardMechanics.updatePlayersCard(playersCard);
+  setPlayersCard() {
+    this.currentCard = this.cardMechanics.updatePlayersCard(this.cards.shift());
   }
 
   otherPlayerScore(newMiddleCard, player) {

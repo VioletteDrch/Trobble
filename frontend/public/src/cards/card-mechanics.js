@@ -12,11 +12,9 @@ import {buildBaseWSMessage} from "../../../config/serverConfig.js";
 
 export class CardMechanics {
   constructor(scene) {
-    console.log("creating card mechanics");
     this.scene = scene;
     this.ws = scene.ws;
     this.totalImagesPerCard = 8;
-    // this.middleCardId = scene.
   }
 
   getRandomPosition(list) {
@@ -103,7 +101,7 @@ export class CardMechanics {
   }
 
   matches(image) {
-    return gameState.middleCard.includes(image.id);
+    return gameState.middleCard.combination.includes(image.id);
   }
 
   createImage(imageId, x, y, card) {
@@ -122,29 +120,19 @@ export class CardMechanics {
     // bind player interactions to the image
     image.setInteractive();
     image.on("pointerdown", () => {
-
-      console.log("user clicked");
-
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        const scoreMessage = this.buildScoreMessage(image.id, gameState.middleCard);
-        console.log("score ?", JSON.stringify(scoreMessage));
-        this.ws.send(JSON.stringify(scoreMessage));
-        gameState.activeAnimations = this.score(card);
+        console.log("user clicked on symbol " + image.id);
+        if (this.matches(image)) {
+          console.log("match !");
+          const scoreMessage = this.buildScoreMessage(image.id, gameState.middleCard);
+          this.ws.send(JSON.stringify(scoreMessage));
+        } else {
+          console.log("not a match...");
+          // blockInteractions(card); TODO
+        }
       } else {
         console.error("WebSocket is not open.");
       }
-
-      // FIXME restore match check after debugging communication with backend on scoring
-      // if (this.matches(image)) {
-      //   console.log("symbols match!");
-      //   const scoreMessage = this.buildScoreMessage();
-      //   console.log("score ?", JSON.stringify(scoreMessage));
-      //   this.ws.send(JSON.stringify(scoreMessage));
-      //   gameState.activeAnimations = this.score(card); // this should not happen here
-      // } else {
-      //   console.log("not a match...");
-      //   // blockInteractions(card); TODO
-      // }
     });
 
     // add to the card and return
@@ -184,11 +172,12 @@ export class CardMechanics {
     return middleCard;
   }
 
-  updatePlayersCard(imageCombination) {
+  updatePlayersCard(newCard) {
+    console.log("creating new top card, id = " + newCard.id);
     return this.createCard(
       150,
       370,
-      imageCombination,
+        newCard.combination,
       playerInfo.name,
       playerInfo.color
     );
