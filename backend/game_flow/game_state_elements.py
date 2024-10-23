@@ -2,6 +2,8 @@ from typing import Dict, List
 
 import numpy as np
 from cards_logic.cards_creator import get_cards
+from dataclasses import dataclass
+
 
 
 # Game state describes two things:
@@ -21,12 +23,18 @@ from cards_logic.cards_creator import get_cards
 #     (in which case, it is a winning move and the player's card goes in the middle)
 
 
+@dataclass
+class Card:
+    id: int
+    combination: List[int]
+
+
 class GameState:
     # Contains game status info in cards ids, aka their position in the deck.
     def __init__(
         self,
-        middle_card: list,
-        players_cards: Dict[int, List[list]],
+        middle_card: Card,
+        players_cards: Dict[int, List[Card]],
         game_id: str,
         host_id: int,
     ):
@@ -52,24 +60,29 @@ class GameStateManager:
         # Create cards deck
         cards = get_cards(prime_number)
         np.random.shuffle(cards)
-        self.cards = cards
+        self.cards = {
+            i: c for i, c in enumerate(cards)
+        }
 
         # Select first card as middle card
-        middle_card = cards.pop(0)
+        middle_card = Card(0, self.cards[0])
 
-        nb_players = len(player_ids)
         # Deal the rest of the cards evenly to the players
+        nb_players = len(player_ids)
         nb_cards_per_player = len(cards) // nb_players
         players_cards = {}
 
-        first_card_id = 1  # first card of the deck has been used as middle card
+        first_card_id = 1  # First card of the deck has been used as middle card
         for player_id in player_ids:
             last_card_id = first_card_id + nb_cards_per_player
-            players_cards[player_id] = cards[first_card_id:last_card_id]
+            players_cards[player_id] = [
+                Card(i, c) for i, c in self.cards.items() if i in range(first_card_id, last_card_id)
+            ]
             first_card_id += nb_cards_per_player
 
         # Initialize game state
         self.game_state = GameState(middle_card, players_cards, game_id, host_id)
+
 
     def __str__(self):
         game_state_str = (

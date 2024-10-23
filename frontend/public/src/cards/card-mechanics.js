@@ -16,6 +16,7 @@ export class CardMechanics {
     this.scene = scene;
     this.ws = scene.ws;
     this.totalImagesPerCard = 8;
+    // this.middleCardId = scene.
   }
 
   getRandomPosition(list) {
@@ -91,10 +92,13 @@ export class CardMechanics {
     return [highlight, nameText, sound];
   }
 
-  buildScoreMessage() {
+  buildScoreMessage(imageId, middleCardId) {
     const scoreMessage = buildBaseWSMessage(playerInfo.id, gameState.gameId);
     scoreMessage.method = "score";
-    scoreMessage.playerMove = "{}"
+    scoreMessage.payload = {
+      symbol_id: 1,
+      middle_card_id: 1,
+    };
     return scoreMessage;
   }
 
@@ -122,7 +126,7 @@ export class CardMechanics {
       console.log("user clicked");
 
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        const scoreMessage = this.buildScoreMessage();
+        const scoreMessage = this.buildScoreMessage(image.id, );
         console.log("score ?", JSON.stringify(scoreMessage));
         this.ws.send(JSON.stringify(scoreMessage));
         gameState.activeAnimations = this.score(card);

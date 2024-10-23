@@ -1,5 +1,6 @@
 from typing import Dict, List, Any, TypedDict
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
+from game_flow.game_state_elements import Card
 
 
 class Player(TypedDict):
@@ -16,7 +17,7 @@ class Lobby(TypedDict):
 class WebsocketMessage:
 
     def __init__(
-        self, method: str, player_id: int, game_id: str, payload: Any = {}
+            self, method: str, player_id: int, game_id: str, payload: Any = {}
     ) -> None:
         self.method = method
         self.player_id = player_id
@@ -56,9 +57,16 @@ class PlayerScoredResponse:
 
 @dataclass
 class GameInitResponse:
-    cards: list
-    middle_card: list
+    player_cards: List[Dict[str, List]]
+    middle_card: Dict[str, List]
     method: str = "init"
+
+    def __init__(self, players_cards, middle_card: Card):
+        self.player_cards = [
+            asdict(card) for card in players_cards
+        ]
+        self.middle_card = asdict(middle_card)
+        self.method = "init"
 
 
 @dataclass

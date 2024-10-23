@@ -51,6 +51,7 @@ export default class GameScene extends Phaser.Scene {
         this.sendMessage("pong", {});
       }
       if (message.method === "init") {
+        console.log("init received in game scene");
         this.initializeGame(message);
       } else if (message.method === "score") {
         this.handleScore(message);
@@ -59,6 +60,7 @@ export default class GameScene extends Phaser.Scene {
       }
     };
     if (this.isHost) {
+      console.log("host init");
       this.ws.send(
           JSON.stringify(this.buildInitMessage(playerInfo.id, gameState.gameId))
       );
@@ -67,16 +69,18 @@ export default class GameScene extends Phaser.Scene {
 
   initializeGame(initMessage) {
     gameState.middleCard = initMessage.middle_card;
-    this.cards = initMessage.cards;
+    console.log("MIDDLE CARD "+ initMessage.middle_card.id + " : " + initMessage.middle_card.combination);
+    console.log("TOTAL CARDS INIT "+ initMessage.player_cards.length);
+    this.cards = initMessage.player_cards;
     this.cardMechanics.createCard(
       gameRules.pilePosition.x,
       gameRules.pilePosition.y,
-      initMessage.middle_card,
+      initMessage.middle_card.combination,
       "pile",
       0x00000,
       () => {}
     );
-    this.setPlayersCard(this.cards.pop());
+    this.setPlayersCard(this.cards[0].combination);
   }
 
   handleScore(scoreMessage) {
@@ -84,7 +88,7 @@ export default class GameScene extends Phaser.Scene {
     gameState.blocked = false;
     if (scoreMessage.player_id === playerInfo.id) {
       this.cardMechanics.score(this.currentCard);
-      this.setPlayersCard(this.cards.pop());
+      this.setPlayersCard(this.cards[0]);
     } else {
       this.otherPlayerScore(
         scoreMessage.new_middle_card,

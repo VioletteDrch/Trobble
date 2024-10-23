@@ -52,9 +52,11 @@ def init_game(host_id, game_id):
     games[game_id] = game_state_manager
     game_state = game_state_manager.game_state
 
-    for player, cards in game_state.players_cards.items():
-        game_init_response = GameInitResponse(cards, game_state.middle_card)
-        player_connections[player].send(json.dumps(game_init_response.__dict__))
+    for player_id, player_cards in game_state.players_cards.items():
+        print("sending init message")
+        game_init_response = GameInitResponse(player_cards, game_state.middle_card)
+        player_connections[player_id].send(json.dumps(game_init_response.__dict__))
+        print("sent to all players")
 
     game_state.active = True
 
@@ -144,9 +146,10 @@ def socket_handler(websocket):
             elif websocket_message.method == "pong":
                 websocket.pong_received = True
             elif websocket_message.method == "init":
+                print("INIT called")
                 init_game(websocket_message.player_id, websocket_message.game_id)
             elif websocket_message.method == "score":
-                print("method score called")
+                print("SCORE called")
                 try:
                     player_move_req = player_move_from_dict(websocket_message.payload)
                     player_move = PlayerMove(
