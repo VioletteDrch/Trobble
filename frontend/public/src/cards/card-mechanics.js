@@ -8,25 +8,17 @@ import {
   playerInfo,
   sizes,
 } from "../../../config/gameConfig";
+import {buildBaseWSMessage} from "../../../config/serverConfig.js";
 
 export class CardMechanics {
   constructor(scene) {
     this.scene = scene;
     this.ws = scene.ws;
-    this.totalImagesPerCard = 7;
+    this.totalImagesPerCard = 8;
   }
 
   getRandomPosition(list) {
     return Math.floor(Math.random() * list.length);
-  }
-
-  matches(image) {
-    if (gameState.middleCard.includes(image.id)) {
-      const scoreMessage = {};
-      return this.ws.send(JSON.stringify(scoreMessage));
-    } else {
-      return false;
-    }
   }
 
   isGameActive() {
@@ -98,6 +90,20 @@ export class CardMechanics {
     return [highlight, nameText, sound];
   }
 
+  buildScoreMessage(imageId, middleCard) {
+    const scoreMessage = buildBaseWSMessage(playerInfo.id, gameState.gameId);
+    scoreMessage.method = "score";
+    scoreMessage.payload = {
+      symbol_id: imageId,
+      middle_card_id: middleCard.id,
+    };
+    return scoreMessage;
+  }
+
+  matches(image) {
+    return gameState.middleCard.combination.includes(image.id);
+  }
+
   createImage(imageId, x, y, card) {
     // get image key from id and add it to the scene
     const imageKey = `image_${imageId}`;
@@ -105,7 +111,7 @@ export class CardMechanics {
     image.id = imageId;
 
     // randomize layout
-    let randomSize = Math.floor(Math.random() * 21 + 25);
+    let randomSize = 65; // Math.floor(Math.random() * 21 + 25); FIXME go back after debugging
     image.setDisplaySize(randomSize, randomSize);
     const angles = getImageAngles();
     const anglePosition = this.getRandomPosition(angles);
@@ -114,10 +120,18 @@ export class CardMechanics {
     // bind player interactions to the image
     image.setInteractive();
     image.on("pointerdown", () => {
-      if (this.matches(image)) {
-        gameState.activeAnimations = this.score(card);
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        console.log("user clicked on symbol " + image.id);
+        if (this.matches(image)) {
+          console.log("match !");
+          const scoreMessage = this.buildScoreMessage(image.id, gameState.middleCard);
+          this.ws.send(JSON.stringify(scoreMessage));
+        } else {
+          console.log("not a match...");
+          // blockInteractions(card); TODO
+        }
       } else {
-        blockInteractions(card);
+        console.error("WebSocket is not open.");
       }
     });
 
@@ -158,11 +172,12 @@ export class CardMechanics {
     return middleCard;
   }
 
-  updatePlayersCard(imageCombination) {
+  updatePlayersCard(newCard) {
+    console.log("creating new top card, id = " + newCard.id);
     return this.createCard(
       150,
       370,
-      imageCombination,
+        newCard.combination,
       playerInfo.name,
       playerInfo.color
     );

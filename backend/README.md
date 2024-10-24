@@ -1,4 +1,4 @@
-# Backed
+# Backend
 
 Here is how you launch the project:
 
