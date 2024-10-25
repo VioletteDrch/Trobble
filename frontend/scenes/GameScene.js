@@ -77,6 +77,7 @@ export default class GameScene extends Phaser.Scene {
       () => {}
     );
     this.setPlayersCard();
+    console.log("middle card : ", gameState.middleCard.id, ": ", gameState.middleCard.combination);
   }
 
   handleScore(scoreMessage) {
@@ -164,6 +165,7 @@ export default class GameScene extends Phaser.Scene {
         data.forEach((image, index) => {
           const url = `${apiBaseUrl}/${image}`;
           const key = `image_${index}`;
+          console.log(image);
           this.load.image(key, url);
         });
       });

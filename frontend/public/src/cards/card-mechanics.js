@@ -121,8 +121,6 @@ export class CardMechanics {
     image.setInteractive();
     image.on("pointerdown", () => {
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        console.log("user clicked on symbol " + image.id);
-        console.log("middle card is : ", gameState.middleCard.combination);
         if (this.matches(image)) {
           console.log("match !");
           const scoreMessage = this.buildScoreMessage(image.id, gameState.middleCard);
