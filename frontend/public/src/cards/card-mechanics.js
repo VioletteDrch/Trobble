@@ -122,6 +122,7 @@ export class CardMechanics {
     image.on("pointerdown", () => {
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
         console.log("user clicked on symbol " + image.id);
+        console.log("middle card is : ", gameState.middleCard.combination);
         if (this.matches(image)) {
           console.log("match !");
           const scoreMessage = this.buildScoreMessage(image.id, gameState.middleCard);
@@ -140,14 +141,16 @@ export class CardMechanics {
     return image;
   }
 
-  createCard(x, y, imageCombination, playerName, playerColor) {
+  createCard(x, y, cardId, cardCombination, playerName, playerColor) {
     const card = this.createContainerWithCircle(x, y);
     card.playerName = playerName;
     card.playerColor = playerColor;
+    card.id = cardId;
+    card.combination = cardCombination;
 
     const imagePositions = getImagePositions();
     for (let i = 0; i < this.totalImagesPerCard; i++) {
-      let imageId = imageCombination[i];
+      let imageId = card.combination[i];
       const positionIndex = this.getRandomPosition(imagePositions);
       const position = imagePositions.splice(positionIndex, 1)[0];
       this.createImage(imageId, position.x, position.y, card);
@@ -177,6 +180,7 @@ export class CardMechanics {
     return this.createCard(
       150,
       370,
+        newCard.id,
         newCard.combination,
       playerInfo.name,
       playerInfo.color

@@ -115,7 +115,7 @@ class GameStateManager:
         # If the player's move is valid, update game state
         if self.valid_player_match(move):
             # resolve if game is still going or it should end, set active = False and set self.winner
-            new_middle_card = self.game_state.players_cards[move.player_id][0]  # remove top card from player's pile
+            new_middle_card = self.game_state.players_cards[move.player_id].pop(0)  # remove top card from player's pile
             self.game_state.middle_card = new_middle_card  # set it as the new middle card
             return True
         else:

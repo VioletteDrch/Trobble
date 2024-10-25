@@ -50,10 +50,8 @@ export default class GameScene extends Phaser.Scene {
         this.sendMessage("pong", {});
       }
       if (message.method === "init") {
-        console.log("init received in game scene");
         this.initializeGame(message);
       } else if (message.method === "score") {
-        console.log("received score message")
         this.handleScore(message);
       } else if (message.method === "end") {
         this.gameEnd(message.winner);
@@ -67,14 +65,12 @@ export default class GameScene extends Phaser.Scene {
   }
 
   initializeGame(initMessage) {
-    gameState.middleCard.id = initMessage.middle_card.id;
-    gameState.middleCard.combination = initMessage.middle_card.combination;
-    console.log("middle card = "+ initMessage.middle_card.id + ": " + initMessage.middle_card.combination);
-    console.log("player 1st card " + playerInfo.id + " - " + initMessage.player_cards[0].id + ": " + initMessage.player_cards[0].combination);
+    this.updateMiddleCard(initMessage.middle_card);
     this.cards = initMessage.player_cards;
     this.cardMechanics.createCard(
       gameRules.pilePosition.x,
       gameRules.pilePosition.y,
+      initMessage.middle_card.id,
       initMessage.middle_card.combination,
       "pile",
       0x00000,
@@ -85,6 +81,7 @@ export default class GameScene extends Phaser.Scene {
 
   handleScore(scoreMessage) {
     gameState.blocked = false;
+    this.updateMiddleCard(scoreMessage.new_middle_card);
     if (scoreMessage.player_id === playerInfo.id) {
       console.log("you scored $_$ !")
       this.cardMechanics.score(this.currentCard);
@@ -92,19 +89,26 @@ export default class GameScene extends Phaser.Scene {
     } else {
       console.log("other player scored >_<")
       this.otherPlayerScore(
-        scoreMessage.new_middle_card,
+        scoreMessage.new_middle_card.id,
+        scoreMessage.new_middle_card.combination,
         otherPlayers.find((player) => player.id === scoreMessage.player_id)
       );
     }
+  }
+
+  updateMiddleCard(newCard) {
+    gameState.middleCard.id = newCard.id;
+    gameState.middleCard.combination = newCard.combination;
   }
 
   setPlayersCard() {
     this.currentCard = this.cardMechanics.updatePlayersCard(this.cards.shift());
   }
 
-  otherPlayerScore(newMiddleCard, player) {
+  otherPlayerScore(newMiddleCardId, newMiddleCardCombination, player) {
     this.cardMechanics.updateMiddleCardWithNewlyCreatedCard(
-      newMiddleCard,
+        newMiddleCardId,
+        newMiddleCardCombination,
       player
     );
   }

@@ -107,8 +107,6 @@ def handle_score(player_connection, player_move: PlayerMove, game_id):
         end_game(game_id)
         return
 
-    game.resolve_game_state(player_move)
-
     if game.resolve_game_state(player_move):
         response = PlayerScoredResponse(
             player_move.player_id, game.game_state.middle_card
