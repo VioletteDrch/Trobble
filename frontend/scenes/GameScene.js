@@ -29,7 +29,7 @@ export default class GameScene extends Phaser.Scene {
   init(data) {
     this.ws = data.websocket;
     this.isHost = data.isHost;
-    this.players = new Set();
+    this.players = new Map();
     this.initPlayerColors(data);
     playerInfo.id = data.playerId;
     gameState.gameId = data.gameId;
@@ -43,7 +43,7 @@ export default class GameScene extends Phaser.Scene {
         name: value,
         color: 0x0000ff
       };
-      this.players.add(player);
+      this.players.set(player.id, player);
     }
   }
 
@@ -101,11 +101,16 @@ export default class GameScene extends Phaser.Scene {
       this.setPlayersCard();
     } else {
       console.log("other player scored >_<")
-      this.otherPlayerScore(
-        scoreMessage.new_middle_card.id,
-        scoreMessage.new_middle_card.combination,
-        this.players.find((player) => player.id === scoreMessage.player_id)
-      );
+      const scoringPlayer = this.players.get(scoreMessage.player_id);
+      if (scoringPlayer) {
+        this.otherPlayerScore(
+            scoreMessage.new_middle_card.id,
+            scoreMessage.new_middle_card.combination,
+            scoringPlayer
+        );
+      } else {
+        console.log("Scoring player doesn't exist");
+      }
     }
   }
 
