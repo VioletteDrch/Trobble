@@ -77,6 +77,7 @@ export default class LobbyScene extends Phaser.Scene {
     this.scene.start("scene-game", {
       websocket: this.ws,
       playerId: this.playerId,
+      players: this.players,
       gameId: this.gameId,
       isHost: true,
     });

@@ -6,7 +6,6 @@ import {
   gameState,
   sizes,
   playerInfo,
-  otherPlayers,
 } from "../config/gameConfig";
 import { server, buildBaseWSMessage} from "../config/serverConfig.js";
 import ErrorMessage from "../components/ErrorMessage.js";
@@ -30,9 +29,22 @@ export default class GameScene extends Phaser.Scene {
   init(data) {
     this.ws = data.websocket;
     this.isHost = data.isHost;
+    this.players = new Set();
+    this.initPlayerColors(data);
     playerInfo.id = data.playerId;
     gameState.gameId = data.gameId;
     this.cardMechanics = new CardMechanics(this);
+  }
+
+  initPlayerColors(data) {
+    for (const [key, value] of Object.entries(data.players)) {
+      const player = {
+        id: key,
+        name: value,
+        color: 0x0000ff
+      };
+      this.players.add(player);
+    }
   }
 
   create() {
@@ -92,7 +104,7 @@ export default class GameScene extends Phaser.Scene {
       this.otherPlayerScore(
         scoreMessage.new_middle_card.id,
         scoreMessage.new_middle_card.combination,
-        otherPlayers.find((player) => player.id === scoreMessage.player_id)
+        this.players.find((player) => player.id === scoreMessage.player_id)
       );
     }
   }
@@ -165,7 +177,6 @@ export default class GameScene extends Phaser.Scene {
         data.forEach((image, index) => {
           const url = `${apiBaseUrl}/${image}`;
           const key = `image_${index}`;
-          console.log(image);
           this.load.image(key, url);
         });
       });
