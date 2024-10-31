@@ -1,10 +1,6 @@
 import json
-import string
-import time
 import threading
-import random
 import uuid
-from typing import Collection
 from game_flow.lobby_repository import *
 from game_flow.game_state_elements import GameStateManager, PlayerMove
 from game_flow.game_pojos import *
@@ -55,9 +51,9 @@ def init_game(host_id, game_id):
     games[game_id] = game_state_manager
     game_state = game_state_manager.game_state
 
-    for player, cards in game_state.players_cards.items():
-        game_init_response = GameInitResponse(cards, game_state.middle_card)
-        player_connections[player].send(json.dumps(game_init_response.__dict__))
+    for player_id, player_cards in game_state.players_cards.items():
+        game_init_response = GameInitResponse(player_cards, game_state.middle_card)
+        player_connections[player_id].send(json.dumps(game_init_response.__dict__))
 
     game_state.active = True
 
@@ -106,17 +102,20 @@ def join_game(websocket_message: WebsocketMessage, connection):
 def handle_score(player_connection, player_move: PlayerMove, game_id):
     game: GameStateManager = games[game_id]
 
-    if game.game_state.active and game.resolve_game_state(player_move):
-        player_connections = lobby_repository.get_player_connections(game_id)
+    if not game.game_state.active:
+        print("game not active")
+        end_game(game_id)
+        return
+
+    if game.resolve_game_state(player_move):
         response = PlayerScoredResponse(
             player_move.player_id, game.game_state.middle_card
         )
-        broadcast(player_connections.values(), json.dumps(response.__dict__))
-        if not game.game_state.active:
-            end_game(game_id)
+        broadcast(game_id, response)
+
     else:
         player_connection.send(
-            json.dumps(PlayerScoredResponse(0, [], "invalid point"))
+            json.dumps(PlayerScoredResponse(0, [], "invalid point").__dict__)
         )  # TODO parse proper JSON error response
 
 
@@ -154,18 +153,21 @@ def socket_handler(websocket):
                     player_move = PlayerMove(
                         websocket_message.player_id,
                         player_move_req.symbol_id,
-                        player_move_req.middle_card_id,
+                        player_move_req.middle_card_id
                     )
                     handle_score(websocket, player_move, websocket_message.game_id)
                 except Exception as e:
-                    websocket.send(PlayerScoredResponse(0, [], "bad request"))
+                    print("error during scoring")
+                    websocket.send(json.dumps(PlayerScoredResponse(0, [], "bad request")).__dict__)
+
     except Exception as e:
         print(f"WebSocket error: {e}")
 
 
-def broadcast(websockets: Collection, message: str):
-    for ws in websockets:
-        ws.send(message)
+def broadcast(game_id, message):
+    player_connections = lobby_repository.get_player_connections(game_id)
+    for connection in player_connections.values():
+        connection.send(json.dumps(message.__dict__))
 
 
 @sock.route("/ws")

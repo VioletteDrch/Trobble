@@ -45,7 +45,6 @@ def upload_file():
 @images_bp.route('', methods=['GET'])
 def get_images():
     image_files = os.listdir(PROCESSED_FOLDER)
-    np.random.shuffle(image_files)  # return in random order
     return jsonify(image_files)
 
 

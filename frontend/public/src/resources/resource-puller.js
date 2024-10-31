@@ -53,5 +53,9 @@ export function retrieveSoundEffects() {
       name: "violette",
       url: "assets/sound_effects/box.mp3",
     },
+    {
+      name: "pile",
+      url: "assets/sound_effects/card.mp3",
+    }
   ];
 }

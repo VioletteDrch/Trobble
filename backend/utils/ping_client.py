@@ -20,6 +20,7 @@ def ping_client(websocket, player_id, game_id):
         except Exception as e:
             print(f"Player {player_id} did not respond to ping, removing from lobby")
             remove_player_from_lobby(game_id, player_id)
+            print(f"Players left in lobby: {len(lobby_repository.get_player_connections(game_id).keys())}")
             break
 
 
