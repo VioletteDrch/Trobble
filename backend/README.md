@@ -8,3 +8,4 @@ Here is how you launch the project:
   * Setup venv
   * install/switch to python 3.9
   * install dependencies
+* run ``python3 app.py`` from terminal to launch project
